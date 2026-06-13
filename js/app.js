@@ -58,7 +58,6 @@ const RATING_QUESTIONS = [
     key: 'q6',
     scaleType: 'problem',   // reversed: 1=كثيرة جداً, 5=لا توجد
     noteField: 'note_q6',
-    hasProblemsBox: true,   // shows extra textarea for "أذكر المشكلة"
   },
   {
     key: 'q7',
@@ -353,18 +352,12 @@ function buildRatingQuestions() {
             <span class="star-lbl">${scaleLabels[v]}</span>
           </button>`).join('')}
       </div>
-      ${q.hasProblemsBox ? `
-        <div class="problems-box">
-          <label class="problems-box-label">${t.problemsBoxLabel}</label>
-          <span class="field-hint">${t.problemsBoxHint}</span>
-          <textarea id="f-problems" class="form-textarea" rows="2"
-            oninput="problemsText=this.value">${problemsText}</textarea>
-        </div>` : ''}
+      ${q.noteField ? `
       <div class="note-box">
         <label class="note-box-label">${t.noteLabel} <span class="field-hint-inline">${t.noteHint}</span></label>
         <textarea class="form-textarea note-textarea" rows="2" data-note="${q.noteField}"
           oninput="notes['${q.noteField}']=this.value">${notes[q.noteField] || ''}</textarea>
-      </div>
+      </div>` : ''}
     `;
     container.appendChild(div);
 
