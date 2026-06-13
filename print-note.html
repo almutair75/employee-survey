@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Print — Odoo Survey</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+</head>
+<body class="lang-en" style="background:white;">
+
+<div class="print-page" id="print-page">
+
+  <div class="print-actions">
+    <button class="btn-sm btn-primary" onclick="window.print()">
+      <i class="bi bi-printer"></i> <span id="btn-print-txt">Print / Save as PDF</span>
+    </button>
+    <button class="btn-sm btn-outline" onclick="window.close()">
+      <i class="bi bi-x"></i> <span id="btn-close-txt">Close</span>
+    </button>
+  </div>
+
+  <div class="print-header">
+    <div class="print-logo"><i class="bi bi-bar-chart-line"></i></div>
+    <div class="print-header-text">
+      <h1 id="print-doc-title">Employee Survey Report</h1>
+      <p>Odoo Usage Evaluation Survey — مؤسسة تسويق الهدايا العالمية</p>
+    </div>
+  </div>
+
+  <div class="print-body">
+    <!-- Employee info -->
+    <div class="print-section">
+      <h3 id="print-emp-header">Employee Details</h3>
+      <div class="print-info-grid">
+        <div class="print-info-item">
+          <div class="print-info-label" id="lbl-p-name">Employee Name</div>
+          <div class="print-info-value" id="p-name">—</div>
+        </div>
+        <div class="print-info-item">
+          <div class="print-info-label" id="lbl-p-dept">Department</div>
+          <div class="print-info-value" id="p-dept">—</div>
+        </div>
+        <div class="print-info-item">
+          <div class="print-info-label" id="lbl-p-date">Submission Date</div>
+          <div class="print-info-value" id="p-date">—</div>
+        </div>
+        <div class="print-info-item">
+          <div class="print-info-label" id="lbl-p-usage">Usage Level</div>
+          <div class="print-info-value" id="p-usage">—</div>
+        </div>
+        <div class="print-info-item">
+          <div class="print-info-label" id="lbl-p-avg">Average Score</div>
+          <div class="print-info-value" id="p-avg">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content area (single note or full report) -->
+    <div id="print-content-area"></div>
+  </div>
+
+  <div class="print-footer">
+    <span>Odoo Usage Evaluation Survey — مؤسسة تسويق الهدايا العالمية</span>
+    <span id="p-footer-date"></span>
+  </div>
+</div>
+
+<script>
+const Q_META = [
+  {key:'q0',type:'standard'}, {key:'q1',type:'standard'}, {key:'q2',type:'standard'},
+  {key:'q3',type:'standard'}, {key:'q4',type:'standard'}, {key:'q5',type:'standard'},
+  {key:'q6',type:'problem'},  {key:'q7',type:'standard'}, {key:'q8',type:'knowledge'},
+  {key:'q9',type:'success'},  {key:'q10',type:'development'}, {key:'q11',type:'alternative'},
+];
+
+const PT = {
+  ar: {
+    docTitle: 'تقرير استبيان موظف — نظام Odoo',
+    empHeader: 'بيانات الموظف',
+    lblName: 'اسم الموظف', lblDept: 'القسم', lblDate: 'تاريخ الإرسال',
+    lblUsage: 'مستوى الاستخدام', lblAvg: 'متوسط التقييم',
+    ratingsHeader: 'تفاصيل التقييم',
+    noteUnder: 'ملاحظة على هذا السؤال',
+    problemsHeader: 'المشاكل المذكورة',
+    suggestionsHeader: 'الاقتراحات',
+    footer: 'استبيان تقييم استخدام نظام Odoo',
+    printBtn: 'طباعة / حفظ PDF',
+    closeBtn: 'إغلاق',
+    usageLabels: {daily:'يومياً', weekly:'عدة مرات/أسبوع', rarely:'نادراً', little:'لا يستخدم كثيراً'},
+    qLabels: [
+      'سهولة استخدام نظام Odoo',
+      'وضوح الشاشات والقوائم',
+      'سرعة النظام أثناء العمل',
+      'دقة البيانات والمعلومات',
+      'سهولة الوصول للطلبات/المنتجات/التقارير',
+      'توافق النظام مع طريقة العمل اليومية',
+      'مستوى المشاكل أو الأخطاء',
+      'الرضا العام عن نظام Odoo',
+      'مدى الإلمام والمعرفة بالنظام',
+      'هل النظام ناجح في الشركة؟',
+      'هل النظام يحتاج تطوير؟',
+      'هل تري ضرورة البحث عن بديل؟',
+    ],
+    scaleLabels: {
+      standard:    {1:'ضعيف جداً',2:'ضعيف',3:'متوسط',4:'جيد',5:'ممتاز'},
+      problem:     {1:'كثيرة جداً',2:'كثيرة',3:'متوسطة',4:'قليلة',5:'لا توجد'},
+      knowledge:   {1:'مبتدئ',2:'أساسي',3:'متوسط',4:'جيد',5:'خبير'},
+      success:     {1:'فاشل',2:'ضعيف',3:'مقبول',4:'جيد',5:'ناجح جداً'},
+      development: {1:'لا يحتاج',2:'بسيط',3:'متوسط',4:'كبير',5:'جذري'},
+      alternative: {1:'لا داعي',2:'ربما',3:'محايد',4:'يُنصح',5:'ضرورة قصوى'},
+    },
+  },
+  en: {
+    docTitle: 'Employee Survey Report — Odoo System',
+    empHeader: 'Employee Details',
+    lblName: 'Employee Name', lblDept: 'Department', lblDate: 'Submission Date',
+    lblUsage: 'Usage Level', lblAvg: 'Average Score',
+    ratingsHeader: 'Rating Details',
+    noteUnder: 'Note on this question',
+    problemsHeader: 'Reported Problems',
+    suggestionsHeader: 'Suggestions',
+    footer: 'Odoo Usage Evaluation Survey',
+    printBtn: 'Print / Save as PDF',
+    closeBtn: 'Close',
+    usageLabels: {daily:'Daily', weekly:'Several times/week', rarely:'Rarely', little:"Doesn't use much"},
+    qLabels: [
+      'Ease of use of Odoo','Clarity of screens and menus','System speed during work',
+      'Accuracy of data and information','Ease of accessing orders/products/reports',
+      'Alignment with daily workflow','Level of problems or errors',
+      'Overall satisfaction with Odoo','Familiarity and knowledge of Odoo',
+      'Is Odoo successful in the company?','Does the system need development?',
+      'Need to look for an alternative system?',
+    ],
+    scaleLabels: {
+      standard:    {1:'Very Poor',2:'Poor',3:'Average',4:'Good',5:'Excellent'},
+      problem:     {1:'Very Many',2:'Many',3:'Moderate',4:'Few',5:'None'},
+      knowledge:   {1:'Beginner',2:'Basic',3:'Intermediate',4:'Good',5:'Expert'},
+      success:     {1:'Failure',2:'Poor',3:'Acceptable',4:'Good',5:'Very Successful'},
+      development: {1:'Not Needed',2:'Minor',3:'Moderate',4:'Major',5:'Radical'},
+      alternative: {1:'Not Needed',2:'Maybe',3:'Neutral',4:'Recommended',5:'Critical'},
+    },
+  },
+};
+
+function loadPage() {
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+  const field = params.get('field');
+  const full = params.get('full') === '1';
+  const lang = params.get('lang') || 'en';
+
+  const t = PT[lang];
+  const isAr = lang === 'ar';
+
+  // Apply language direction
+  document.documentElement.setAttribute('dir', isAr ? 'rtl' : 'ltr');
+  document.documentElement.setAttribute('lang', lang);
+  document.body.className = isAr ? 'lang-ar' : 'lang-en';
+
+  // Update static labels
+  document.getElementById('btn-print-txt').textContent = t.printBtn;
+  document.getElementById('btn-close-txt').textContent = t.closeBtn;
+  document.getElementById('print-doc-title').textContent = t.docTitle;
+  document.getElementById('print-emp-header').textContent = t.empHeader;
+  document.getElementById('lbl-p-name').textContent = t.lblName;
+  document.getElementById('lbl-p-dept').textContent = t.lblDept;
+  document.getElementById('lbl-p-date').textContent = t.lblDate;
+  document.getElementById('lbl-p-usage').textContent = t.lblUsage;
+  document.getElementById('lbl-p-avg').textContent = t.lblAvg;
+  document.getElementById('p-footer-date').textContent = (isAr ? 'طُبع في: ' : 'Printed: ') +
+    new Date().toLocaleDateString(isAr ? 'ar-SA' : 'en-GB');
+
+  if (!id) { showError('No response ID specified.'); return; }
+
+  const all = JSON.parse(localStorage.getItem('odoo_survey_responses') || '[]');
+  const r = all.find(x => x.id === id);
+  if (!r) { showError('Response not found.'); return; }
+
+  const date = new Date(r.timestamp).toLocaleDateString(isAr ? 'ar-SA' : 'en-GB', {
+    day:'2-digit', month:'long', year:'numeric'
+  });
+
+  document.getElementById('p-name').textContent = r.name || '—';
+  document.getElementById('p-dept').textContent = r.department || '—';
+  document.getElementById('p-date').textContent = date;
+  document.getElementById('p-usage').textContent = t.usageLabels[r.usage] || r.usage || '—';
+  document.getElementById('p-avg').textContent = (r.avgRating || 0).toFixed(2) + ' / 5';
+  document.title = t.docTitle + ' — ' + (r.name || '');
+
+  const contentArea = document.getElementById('print-content-area');
+
+  if (full) {
+    // Full report: all ratings + notes + problems + suggestions
+    let html = `<div class="print-section"><h3>${t.ratingsHeader}</h3>`;
+    Q_META.forEach((q, i) => {
+      const val = r.ratings?.[q.key];
+      if (!val) return;
+      const label = t.qLabels[i];
+      const scaleLabel = t.scaleLabels[q.type]?.[val] || val;
+      const noteKey = 'note_' + q.key;
+      const noteVal = r.notes?.[noteKey];
+      const pct = (val / 5) * 100;
+      const color = val >= 4 ? '#10b981' : val >= 3 ? '#1a56db' : val >= 2 ? '#f97316' : '#ef4444';
+
+      html += `<div style="padding:0.6rem 0;border-bottom:1px solid #f0f0f0;">
+        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.3rem;">
+          <span style="font-size:0.82rem;font-weight:700;color:#111;flex:1;">${i+1}. ${label}</span>
+          <span style="font-size:0.8rem;font-weight:700;color:${color};background:${color}15;padding:0.15rem 0.5rem;border-radius:99px;white-space:nowrap;">
+            ${val}/5 — ${scaleLabel}
+          </span>
+        </div>
+        <div style="height:5px;background:#f0f0f0;border-radius:99px;overflow:hidden;">
+          <div style="height:100%;width:${pct}%;background:${color};border-radius:99px;"></div>
+        </div>
+        ${noteVal ? `<div style="margin-top:0.4rem;font-size:0.78rem;color:#6b7280;background:#f9fafb;padding:0.4rem 0.6rem;border-radius:6px;border-inline-start:3px solid #d1d5db;">
+          <strong>${t.noteUnder}:</strong> ${noteVal}
+        </div>` : ''}
+      </div>`;
+    });
+    html += '</div>';
+
+    if (r.problems) {
+      html += `<div class="print-section"><h3>${t.problemsHeader}</h3>
+        <div class="print-note-content">${r.problems}</div></div>`;
+    }
+    if (r.suggestions) {
+      html += `<div class="print-section"><h3>${t.suggestionsHeader}</h3>
+        <div class="print-note-content">${r.suggestions}</div></div>`;
+    }
+    contentArea.innerHTML = html;
+
+  } else {
+    // Single note
+    const fieldLabels = {
+      problems:    { ar:'المشاكل المذكورة', en:'Reported Problems' },
+      suggestions: { ar:'الاقتراحات', en:'Suggestions' },
+    };
+    const content = r[field];
+    if (!content) { showError('No content in this field.'); return; }
+    const fieldLabel = fieldLabels[field]?.[lang] || field;
+    contentArea.innerHTML = `<div class="print-section"><h3>${fieldLabel}</h3>
+      <div class="print-note-content">${content}</div></div>`;
+  }
+}
+
+function showError(msg) {
+  document.getElementById('print-content-area').innerHTML =
+    `<div style="padding:2rem;text-align:center;color:#666;"><p>${msg}</p>
+     <a href="dashboard.html" style="color:#1a56db;">← Back to Dashboard</a></div>`;
+}
+
+loadPage();
+</script>
+</body>
+</html>

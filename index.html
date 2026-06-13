@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>استبيان تقييم نظام Odoo</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+</head>
+<body class="lang-ar">
+
+<!-- A) LANGUAGE SELECTION -->
+<div id="page-lang" class="lang-select-page">
+  <div class="lang-select-card">
+    <div class="brand-logo"><i class="bi bi-bar-chart-line"></i></div>
+    <div class="lang-select-title-ar">استبيان تقييم استخدام نظام Odoo</div>
+    <div class="lang-select-title-en">Odoo Usage Evaluation Survey</div>
+    <div class="lang-select-subtitle">اختر لغتك / Choose your language</div>
+    <div class="lang-buttons">
+      <button class="lang-btn lang-ar-btn" onclick="selectLanguage('ar')">
+        <span class="flag">🇸🇦</span>
+        <span class="lang-name-primary">العربية</span>
+        <span class="lang-name-secondary">Arabic</span>
+      </button>
+      <button class="lang-btn lang-en-btn" onclick="selectLanguage('en')">
+        <span class="flag">🇬🇧</span>
+        <span class="lang-name-primary">English</span>
+        <span class="lang-name-secondary">الإنجليزية</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- B) SURVEY PAGE -->
+<div id="page-survey" style="display:none;">
+  <header class="survey-header">
+    <div class="survey-header-inner">
+      <div class="survey-brand">
+        <div class="survey-brand-icon"><i class="bi bi-bar-chart-line"></i></div>
+        <div class="survey-brand-text">
+          <h2 id="hdr-title">استبيان تقييم نظام Odoo</h2>
+          <p id="hdr-sub">تقييم تجربة الموظفين</p>
+        </div>
+      </div>
+      <button class="lang-toggle-btn" onclick="toggleLanguage()">
+        <i class="bi bi-translate"></i>
+        <span id="lang-toggle-label">English</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="progress-section">
+    <div class="progress-inner">
+      <div class="progress-labels">
+        <span class="progress-label" id="progress-label">تقدم التعبئة</span>
+        <span class="progress-pct" id="progress-pct">0%</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+    </div>
+  </div>
+
+  <main class="survey-main">
+    <div class="survey-intro">
+      <h1 id="intro-title">مرحباً بك في استبيان تقييم نظام Odoo</h1>
+      <p id="intro-desc">يهدف هذا الاستبيان إلى تقييم تجربتك مع نظام Odoo وتحديد فرص التحسين.</p>
+    </div>
+
+    <form id="survey-form" novalidate>
+
+      <!-- Card 1: Personal Info -->
+      <div class="survey-card">
+        <div class="card-header">
+          <div class="card-header-icon icon-blue"><i class="bi bi-person-badge"></i></div>
+          <div><h3 id="c1-title">معلومات الموظف</h3><p id="c1-sub">البيانات الأساسية</p></div>
+        </div>
+        <div class="card-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="f-name" id="lbl-name">اسم الموظف <span class="required-star">*</span></label>
+              <input type="text" id="f-name" class="form-input" autocomplete="name" />
+              <span class="field-error" id="err-name"></span>
+            </div>
+            <div class="form-group">
+              <label for="f-dept" id="lbl-dept">القسم / الإدارة <span class="required-star">*</span></label>
+              <select id="f-dept" class="form-select">
+                <option value="">-- اختر القسم --</option>
+                <option value="المحاسبة والمالية">المحاسبة والمالية</option>
+                <option value="المبيعات">المبيعات</option>
+                <option value="المشتريات">المشتريات</option>
+                <option value="المستودعات والمخازن">المستودعات والمخازن</option>
+                <option value="الإنتاج">الإنتاج</option>
+                <option value="خدمة العملاء">خدمة العملاء</option>
+                <option value="الموارد البشرية">الموارد البشرية</option>
+                <option value="تقنية المعلومات">تقنية المعلومات</option>
+                <option value="الإدارة العليا">الإدارة العليا</option>
+                <option value="أخرى">أخرى</option>
+              </select>
+              <span class="field-error" id="err-dept"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2: Usage -->
+      <div class="survey-card">
+        <div class="card-header">
+          <div class="card-header-icon icon-cyan"><i class="bi bi-activity"></i></div>
+          <div><h3 id="c2-title">مستوى الاستخدام</h3><p id="c2-sub">كم مرة تستخدم نظام Odoo؟</p></div>
+        </div>
+        <div class="card-body">
+          <div class="form-group">
+            <label id="lbl-usage">مدى استخدامك لنظام Odoo <span class="required-star">*</span></label>
+            <div class="usage-options">
+              <div class="usage-option">
+                <input type="radio" name="usage" id="u-daily" value="daily" />
+                <label for="u-daily"><span class="usage-option-icon">📅</span><span id="u-daily-lbl">يومياً</span></label>
+              </div>
+              <div class="usage-option">
+                <input type="radio" name="usage" id="u-weekly" value="weekly" />
+                <label for="u-weekly"><span class="usage-option-icon">📆</span><span id="u-weekly-lbl">عدة مرات في الأسبوع</span></label>
+              </div>
+              <div class="usage-option">
+                <input type="radio" name="usage" id="u-rarely" value="rarely" />
+                <label for="u-rarely"><span class="usage-option-icon">🔄</span><span id="u-rarely-lbl">نادراً</span></label>
+              </div>
+              <div class="usage-option">
+                <input type="radio" name="usage" id="u-little" value="little" />
+                <label for="u-little"><span class="usage-option-icon">💤</span><span id="u-little-lbl">لا أستخدمه كثيراً</span></label>
+              </div>
+            </div>
+            <span class="field-error" id="err-usage"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: Rating Questions (built by JS) -->
+      <div class="survey-card">
+        <div class="card-header">
+          <div class="card-header-icon icon-purple"><i class="bi bi-star-half"></i></div>
+          <div><h3 id="c3-title">أسئلة التقييم</h3><p id="c3-sub">قيّم كل جانب حسب مقياس التقييم المحدد</p></div>
+        </div>
+        <div class="card-body" id="rating-questions-container"></div>
+      </div>
+
+      <!-- Card 4: Suggestions -->
+      <div class="survey-card">
+        <div class="card-header">
+          <div class="card-header-icon icon-green"><i class="bi bi-lightbulb"></i></div>
+          <div><h3 id="c4-title">اقتراحات عامة</h3><p id="c4-sub">شاركنا اقتراحاتك لتحسين النظام</p></div>
+        </div>
+        <div class="card-body">
+          <div class="form-group">
+            <label for="f-suggestions" id="lbl-suggestions">اقتراحاتك لتحسين النظام</label>
+            <span class="field-hint" id="hint-suggestions">— اختياري —</span>
+            <textarea id="f-suggestions" class="form-textarea" rows="4"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Submit -->
+      <div class="submit-section">
+        <button type="submit" class="btn-submit" id="btn-submit">
+          <i class="bi bi-send"></i>
+          <span id="submit-label">إرسال الاستبيان</span>
+        </button>
+        <p class="submit-note" id="submit-note">بإرسال هذا الاستبيان، تؤكد أن إجاباتك صحيحة وصادقة.</p>
+      </div>
+    </form>
+  </main>
+</div>
+
+<!-- C) THANK YOU -->
+<div id="page-thankyou" style="display:none;" class="thankyou-page">
+  <div class="thankyou-card">
+    <div class="thankyou-icon"><i class="bi bi-check-lg"></i></div>
+    <h1 id="ty-title">شكراً لمشاركتك!</h1>
+    <p id="ty-desc1">تم استلام ردودك بنجاح.</p>
+    <p id="ty-desc2">ستُستخدم إجاباتك لتحسين تجربة استخدام نظام Odoo داخل الشركة.</p>
+    <p id="ty-desc3" style="margin-top:0.5rem;font-size:0.8rem;color:var(--text-muted);">يمكنك إغلاق هذه الصفحة الآن.</p>
+    <button class="btn-new-survey" onclick="resetSurvey()">
+      <i class="bi bi-arrow-clockwise"></i>
+      <span id="ty-new-label">تعبئة استبيان جديد</span>
+    </button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="js/app.js"></script>
+</body>
+</html>

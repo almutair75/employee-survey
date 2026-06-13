@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — Odoo Survey</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body class="lang-en dashboard-body">
+
+<!-- LOGIN -->
+<div id="dashboard-login" class="dashboard-login">
+  <div class="login-card">
+    <div class="login-logo"><i class="bi bi-shield-lock"></i></div>
+    <h2 id="login-title-txt">Management Dashboard</h2>
+    <p id="login-sub-txt">Sign in to access survey results</p>
+    <div class="form-group">
+      <label for="login-pw" id="login-pw-label">Password</label>
+      <input type="password" id="login-pw" class="form-input" placeholder="Enter password"
+             onkeydown="if(event.key==='Enter')doLogin()" />
+      <span class="field-error" id="login-err"></span>
+    </div>
+    <button class="btn-login" onclick="doLogin()">
+      <i class="bi bi-box-arrow-in-right"></i> <span id="login-btn-txt">Sign In</span>
+    </button>
+    <div class="login-hint" id="login-hint-txt">
+      <strong>Demo Mode</strong> — Password: <code>admin123</code>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD APP -->
+<div id="dashboard-app" class="dashboard-app">
+
+  <!-- Top Bar -->
+  <header class="dash-topbar">
+    <div class="dash-brand">
+      <div class="dash-brand-icon"><i class="bi bi-bar-chart-line"></i></div>
+      <div>
+        <h1 id="dash-title">Survey Results Dashboard</h1>
+        <span id="dash-subtitle">Odoo Usage Evaluation — Management View</span>
+      </div>
+    </div>
+    <div class="dash-actions">
+      <button class="dash-lang-toggle" onclick="toggleDashLang()">
+        <i class="bi bi-translate"></i> <span id="dash-lang-label">العربية</span>
+      </button>
+      <button class="btn-sm btn-outline" onclick="exportCSV()">
+        <i class="bi bi-download"></i> <span id="btn-export-label">Export CSV</span>
+      </button>
+      <button class="btn-sm btn-outline" onclick="window.print()">
+        <i class="bi bi-printer"></i> <span id="btn-print-label">Print Report</span>
+      </button>
+      <a href="index.html" class="btn-sm btn-outline">
+        <i class="bi bi-box-arrow-right"></i> <span id="btn-exit-label">Exit</span>
+      </a>
+      <button class="btn-sm btn-danger" onclick="doLogout()" title="Logout">
+        <i class="bi bi-power"></i>
+      </button>
+    </div>
+  </header>
+
+  <div class="dash-content">
+
+    <!-- Filters -->
+    <div class="filters-bar">
+      <div class="filters-label"><i class="bi bi-funnel"></i> <span id="filters-label-txt">Filters</span></div>
+      <div class="filters-row">
+        <div class="filter-group">
+          <label id="filter-dept-label">Department</label>
+          <select id="filter-dept" class="filter-select" onchange="applyFilters()">
+            <option value="">All Departments</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label id="filter-emp-label">Employee</label>
+          <select id="filter-employee" class="filter-select" onchange="applyFilters()">
+            <option value="">All Employees</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label id="filter-date-from-label">Date From</label>
+          <input type="date" id="filter-date-from" class="filter-input" onchange="applyFilters()" />
+        </div>
+        <div class="filter-group">
+          <label id="filter-date-to-label">Date To</label>
+          <input type="date" id="filter-date-to" class="filter-input" onchange="applyFilters()" />
+        </div>
+        <div class="filter-group">
+          <label id="filter-rating-label">Min Rating</label>
+          <select id="filter-rating" class="filter-select" onchange="applyFilters()">
+            <option value="">Any Rating</option>
+            <option value="4">4+</option>
+            <option value="3">3+</option>
+            <option value="2">2+</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>&nbsp;</label>
+          <input type="text" id="filter-name" class="filter-input" placeholder="Search name..." oninput="applyFilters()" />
+        </div>
+        <div class="filter-group" style="justify-content:flex-end;align-self:flex-end;">
+          <button class="btn-sm btn-outline" onclick="clearFilters()">
+            <i class="bi bi-x-circle"></i> <span id="btn-clear-label">Clear</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-blue"><i class="bi bi-people-fill"></i></div>
+        <div class="kpi-info">
+          <div class="kpi-label" id="kpi-total-label">Total Responses</div>
+          <div class="kpi-value" id="kpi-total">0</div>
+          <div class="kpi-sub" id="kpi-total-sub">survey submissions</div>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-green"><i class="bi bi-star-fill"></i></div>
+        <div class="kpi-info">
+          <div class="kpi-label" id="kpi-avg-label">Overall Satisfaction</div>
+          <div class="kpi-value" id="kpi-avg">—</div>
+          <div class="kpi-sub" id="kpi-avg-sub">average score / 5</div>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-cyan"><i class="bi bi-building"></i></div>
+        <div class="kpi-info">
+          <div class="kpi-label" id="kpi-depts-label">Departments</div>
+          <div class="kpi-value" id="kpi-depts">0</div>
+          <div class="kpi-sub" id="kpi-depts-sub">departments participated</div>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-amber"><i class="bi bi-calendar-check"></i></div>
+        <div class="kpi-info">
+          <div class="kpi-label" id="kpi-latest-label">Latest Response</div>
+          <div class="kpi-value" id="kpi-latest" style="font-size:1rem;">—</div>
+          <div class="kpi-sub" id="kpi-latest-sub">most recent submission</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 1: Operational Charts -->
+    <div class="charts-grid">
+      <div class="dash-card">
+        <div class="dash-card-header"><div>
+          <div class="dash-card-title" id="chart-bar-title">التقييم التشغيلي للنظام</div>
+          <div class="dash-card-sub" id="chart-bar-sub">متوسط التقييم للأسئلة التشغيلية الثمانية</div>
+        </div></div>
+        <div class="dash-card-body">
+          <canvas id="chart-bar" style="max-height:300px;"></canvas>
+          <div id="chart-bar-note" style="display:none;font-size:0.73rem;color:var(--warning);margin-top:0.5rem;padding:0.4rem 0.6rem;background:#fffbeb;border-radius:6px;border:1px solid #fde8cc;"></div>
+        </div>
+      </div>
+      <div class="dash-card">
+        <div class="dash-card-header"><div>
+          <div class="dash-card-title" id="chart-donut-title">توزيع مستوى الاستخدام</div>
+          <div class="dash-card-sub" id="chart-donut-sub">نسبة الاستخدام بين الموظفين</div>
+        </div></div>
+        <div class="dash-card-body" style="display:flex;align-items:center;justify-content:center;">
+          <canvas id="chart-doughnut" style="max-height:240px;max-width:240px;"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 2: Future/Strategic Questions -->
+    <div class="dash-card" style="margin-bottom:1.5rem;">
+      <div class="dash-card-header"><div>
+        <div class="dash-card-title" id="future-section-title">رأي الموظفين في النظام ومستقبله</div>
+        <div class="dash-card-sub" id="future-section-sub">هذه الأسئلة تعكس رأي الموظفين الاستراتيجي — تُقرأ باتجاهها الخاص</div>
+      </div></div>
+      <div class="dash-card-body">
+        <div id="future-cards" class="future-cards-grid"></div>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="dash-card" style="margin-bottom:1.5rem;">
+      <div class="dash-card-header">
+        <div>
+          <div class="dash-card-title" id="all-resp-title">All Responses</div>
+          <div class="dash-card-sub" id="table-count-sub">Loading...</div>
+        </div>
+      </div>
+      <div class="dash-card-body" style="padding:0;">
+        <div class="table-wrap">
+          <table id="responses-table">
+            <thead>
+              <tr>
+                <th id="th-num">#</th>
+                <th id="th-name">Employee Name</th>
+                <th id="th-dept">Department</th>
+                <th id="th-date">Submission Date</th>
+                <th id="th-usage">Usage</th>
+                <th id="th-score">Avg. Score</th>
+                <th id="th-actions">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="responses-tbody"></tbody>
+          </table>
+        </div>
+        <div class="empty-state" id="empty-responses" style="display:none;">
+          <i class="bi bi-inbox"></i>
+          <p id="empty-resp-txt">No responses yet.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Comments -->
+    <div class="dash-card">
+      <div class="dash-card-header">
+        <div>
+          <div class="dash-card-title" id="comments-title">Employee Comments & Suggestions</div>
+          <div class="dash-card-sub" id="comments-sub">Text responses from survey submissions</div>
+        </div>
+      </div>
+      <div class="dash-card-body">
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab('problems',this)">
+            <i class="bi bi-bug"></i> <span id="tab-problems-label">Problems</span>
+          </button>
+          <button class="tab-btn" onclick="switchTab('suggestions',this)">
+            <i class="bi bi-lightbulb"></i> <span id="tab-suggestions-label">Suggestions</span>
+          </button>
+          <button class="tab-btn" onclick="switchTab('notes',this)">
+            <i class="bi bi-journal-text"></i> <span id="tab-notes-label">Detailed Notes</span>
+          </button>
+        </div>
+        <div id="tab-problems" class="tab-panel active"></div>
+        <div id="tab-suggestions" class="tab-panel"></div>
+        <div id="tab-notes" class="tab-panel"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-overlay" id="detail-modal" onclick="closeModal(event)">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 id="detail-modal-title"><i class="bi bi-person-lines-fill"></i> Response Detail</h3>
+      <button class="modal-close" onclick="closeDetailModal()"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="modal-body" id="modal-body-content"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="js/dashboard.js"></script>
+</body>
+</html>
