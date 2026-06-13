@@ -2,7 +2,7 @@
    ODOO SURVEY — dashboard.js v2
    ============================================= */
 
-const DASH_CONFIG = { demoPassword: 'admin123', mode: 'demo' };
+const DASH_CONFIG = { demoPassword: 'Majed@2026', mode: 'demo' };
 
 /* ── Question labels per language ── */
 const Q_META = [
@@ -81,8 +81,8 @@ const DT = {
     loginPwLabel: 'كلمة المرور',
     loginPwPlaceholder: 'أدخل كلمة المرور',
     loginBtn: 'دخول',
-    loginHint: 'وضع تجريبي — كلمة المرور: admin123',
-    loginErr: 'كلمة المرور غير صحيحة. الكلمة التجريبية: admin123',
+    loginHint: 'للوصول تواصل مع مدير النظام',
+    loginErr: 'كلمة المرور غير صحيحة',
     exportSuccess: 'تم تصدير CSV بنجاح ✓',
     exportEmpty: 'لا توجد بيانات للتصدير',
     qLabels: [
@@ -169,8 +169,8 @@ const DT = {
     loginPwLabel: 'Password',
     loginPwPlaceholder: 'Enter password',
     loginBtn: 'Sign In',
-    loginHint: 'Demo Mode — Password: admin123',
-    loginErr: 'Incorrect password. Demo password: admin123',
+    loginHint: 'Contact system administrator for access',
+    loginErr: 'Incorrect password',
     exportSuccess: 'CSV exported successfully ✓',
     exportEmpty: 'No data to export',
     qLabels: [
@@ -243,6 +243,7 @@ function applyDashLang() {
   setTxt('dash-lang-label', isAr ? 'English' : 'العربية');
   setTxt('btn-export-label', t.exportCsv);
   setTxt('btn-print-label', t.print);
+  setTxt('btn-print-all-label', dashLang==='ar' ? 'تقرير PDF شامل' : 'Full PDF Report');
   setTxt('btn-exit-label', t.exit);
   setTxt('filters-label-txt', t.filters);
   setTxt('filter-dept-label', t.dept);
@@ -438,11 +439,33 @@ function renderOperationalChart() {
     return v >= 4 ? '#10b981' : v >= 3 ? '#1a56db' : v >= 2 ? '#f97316' : '#ef4444';
   });
 
+  // Build multiline labels: question short name + respondent count below
+  const respCount = filteredResponses.length;
+  const countSuffix = dashLang === 'ar'
+    ? `${respCount} موظف`
+    : `${respCount} resp.`;
+
+  // Wrap long labels into 2 lines for Chart.js (array = multiline)
+  const shortLabels = opLabels.map((l, i) => {
+    // shorten to max ~16 chars per line
+    const words = l.split(' ');
+    const lines = [];
+    let line = '';
+    words.forEach(w => {
+      if ((line + ' ' + w).trim().length > 16) { lines.push(line.trim()); line = w; }
+      else line = (line + ' ' + w).trim();
+    });
+    if (line) lines.push(line);
+    // Add respondent count as last line in muted style (Chart.js supports array)
+    lines.push(countSuffix);
+    return lines;
+  });
+
   if (barChart) barChart.destroy();
   barChart = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: opLabels.map(l => l.length > 20 ? l.slice(0,20)+'…' : l),
+      labels: shortLabels,
       datasets: [{
         label: dashLang==='ar' ? 'مستوى التقييم' : 'Score Level',
         data: avgs,
@@ -473,17 +496,38 @@ function renderOperationalChart() {
               }
               return ` ${dashLang==='ar'?'المتوسط':'Avg'}: ${item.raw}/5`;
             },
+            afterLabel: item => {
+              return ` ${dashLang==='ar'?'عدد الردود':'Responses'}: ${respCount}`;
+            },
           },
         },
-        // Annotation: explain q6 inversion
       },
       scales: {
         y: {
           min: 0, max: 5,
-          ticks: { stepSize: 1, font: { size: 11 } },
+          ticks: {
+            stepSize: 1,
+            font: { size: 11 },
+            callback: v => {
+              const labels = dashLang==='ar'
+                ? {0:'',1:'ضعيف جداً',2:'ضعيف',3:'متوسط',4:'جيد',5:'ممتاز'}
+                : {0:'',1:'Very Poor',2:'Poor',3:'Average',4:'Good',5:'Excellent'};
+              return labels[v] || v;
+            },
+          },
           grid: { color: '#f0f0f0' },
         },
-        x: { ticks: { font: { size: 10 }, maxRotation: 40 }, grid: { display: false } },
+        x: {
+          ticks: {
+            font: { size: 9 },
+            maxRotation: 0,
+            color: ctx2 => {
+              // Make the count line (last line of each label) lighter
+              return '#9ca3af';
+            },
+          },
+          grid: { display: false },
+        },
       },
     },
   });
@@ -504,16 +548,46 @@ function renderDoughnutChart() {
   const ctx = document.getElementById('chart-doughnut').getContext('2d');
   const counts = {daily:0,weekly:0,rarely:0,little:0};
   filteredResponses.forEach(r=>{if(r.usage&&counts[r.usage]!==undefined)counts[r.usage]++;});
+  const total = filteredResponses.length;
+
   if (doughnutChart) doughnutChart.destroy();
+
+  // Labels include count and percentage
+  const labels = Object.entries(counts).map(([k, v]) => {
+    const pct = total ? Math.round((v/total)*100) : 0;
+    return `${t.usageLabels[k]} (${v} — ${pct}%)`;
+  });
+
   doughnutChart = new Chart(ctx, {
     type: 'doughnut',
     data: {
-      labels: Object.keys(counts).map(k=>t.usageLabels[k]),
-      datasets:[{ data:Object.values(counts), backgroundColor:['#1a56db','#0891b2','#10b981','#9ca3af'], borderWidth:2, borderColor:'#fff' }],
+      labels,
+      datasets:[{
+        data: Object.values(counts),
+        backgroundColor:['#1a56db','#0891b2','#10b981','#9ca3af'],
+        borderWidth: 2,
+        borderColor: '#fff',
+      }],
     },
     options: {
-      responsive:true, maintainAspectRatio:true, cutout:'65%',
-      plugins:{ legend:{position:'bottom',labels:{font:{size:11},padding:12}} },
+      responsive: true,
+      maintainAspectRatio: true,
+      cutout: '60%',
+      plugins:{
+        legend:{
+          position: 'bottom',
+          labels: { font:{ size:11 }, padding:10, boxWidth:14 },
+        },
+        tooltip: {
+          callbacks: {
+            label: item => {
+              const v = item.raw;
+              const pct = total ? Math.round((v/total)*100) : 0;
+              return ` ${v} ${dashLang==='ar'?'موظف':'employees'} (${pct}%)`;
+            },
+          },
+        },
+      },
     },
   });
 }
@@ -775,6 +849,18 @@ function printNote(id, field) {
 function printFullReport(id) {
   const params = new URLSearchParams({id, full:'1', lang: dashLang});
   window.open('print-note.html?'+params.toString(),'_blank');
+}
+
+/* ── PRINT ALL REPORT ── */
+function openPrintReport() {
+  const dept = document.getElementById('filter-dept').value;
+  const dateFrom = document.getElementById('filter-date-from').value;
+  const dateTo = document.getElementById('filter-date-to').value;
+  const params = new URLSearchParams({ lang: dashLang });
+  if (dept) params.set('dept', dept);
+  if (dateFrom) params.set('dateFrom', dateFrom);
+  if (dateTo) params.set('dateTo', dateTo);
+  window.open('print-report.html?' + params.toString(), '_blank');
 }
 
 /* ── EXPORT CSV ── */

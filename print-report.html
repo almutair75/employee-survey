@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>تقرير شامل — استبيان Odoo</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+
+    :root {
+      --primary: #1a56db;
+      --accent: #0891b2;
+      --success: #059669;
+      --warning: #d97706;
+      --danger: #dc2626;
+      --text: #111827;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --bg: #f9fafb;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Cairo', sans-serif;
+      color: var(--text);
+      background: #f0f2f5;
+      direction: rtl;
+    }
+
+    /* ── SCREEN CONTROLS ── */
+    .screen-only {
+      background: white;
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .ctrl-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .ctrl-brand-icon {
+      width: 38px; height: 38px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-size: 1.1rem;
+    }
+    .ctrl-brand h1 { font-size: 1rem; font-weight: 700; }
+    .ctrl-brand p { font-size: 0.75rem; color: var(--muted); }
+
+    .ctrl-actions { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.55rem 1.1rem;
+      border-radius: 8px; border: 1.5px solid;
+      font-family: 'Cairo', sans-serif;
+      font-size: 0.85rem; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+      text-decoration: none;
+    }
+    .btn-primary { background: var(--primary); color: white; border-color: var(--primary); }
+    .btn-primary:hover { background: #1342a8; }
+    .btn-outline { background: white; color: #374151; border-color: var(--border); }
+    .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+    .btn-success { background: var(--success); color: white; border-color: var(--success); }
+
+    /* Filter bar */
+    .filter-bar {
+      background: white;
+      padding: 0.875rem 2rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .filter-bar label { font-size: 0.8rem; font-weight: 600; color: var(--muted); white-space: nowrap; }
+    .filter-bar select, .filter-bar input {
+      padding: 0.4rem 0.75rem;
+      border: 1.5px solid var(--border);
+      border-radius: 7px;
+      font-family: 'Cairo', sans-serif;
+      font-size: 0.82rem;
+      color: var(--text);
+      background: white;
+      outline: none;
+    }
+    .filter-bar select:focus, .filter-bar input:focus { border-color: var(--primary); }
+
+    .selected-count {
+      margin-right: auto;
+      font-size: 0.82rem;
+      color: var(--primary);
+      font-weight: 700;
+      background: #e8effe;
+      padding: 0.3rem 0.75rem;
+      border-radius: 99px;
+    }
+
+    /* ── PRINT DOCUMENT ── */
+    .document-wrap {
+      max-width: 900px;
+      margin: 1.5rem auto;
+      padding: 0 1rem 3rem;
+    }
+
+    /* Cover page */
+    .cover-page {
+      background: white;
+      border-radius: 12px;
+      padding: 3rem 2.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      text-align: center;
+      border-top: 6px solid var(--primary);
+    }
+    .cover-logo {
+      width: 70px; height: 70px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-radius: 16px;
+      margin: 0 auto 1.5rem;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem; color: white;
+    }
+    .cover-page h1 { font-size: 1.6rem; font-weight: 800; color: var(--text); margin-bottom: 0.5rem; }
+    .cover-page h2 { font-size: 1rem; font-weight: 500; color: var(--muted); margin-bottom: 2rem; }
+
+    .cover-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin: 2rem 0;
+    }
+    .cover-stat {
+      background: var(--bg);
+      border-radius: 10px;
+      padding: 1rem;
+      border: 1px solid var(--border);
+    }
+    .cover-stat-num { font-size: 1.8rem; font-weight: 800; color: var(--primary); }
+    .cover-stat-lbl { font-size: 0.78rem; color: var(--muted); margin-top: 0.2rem; }
+
+    .cover-meta {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+    }
+
+    /* TOC */
+    .toc-page {
+      background: white;
+      border-radius: 12px;
+      padding: 2rem 2.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    }
+    .toc-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: var(--primary); }
+    .toc-item {
+      display: flex;
+      align-items: center;
+      padding: 0.5rem 0;
+      border-bottom: 1px dashed var(--border);
+      font-size: 0.85rem;
+      gap: 0.75rem;
+    }
+    .toc-num {
+      width: 24px; height: 24px;
+      background: var(--primary);
+      color: white;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.7rem; font-weight: 700; flex-shrink: 0;
+    }
+    .toc-name { flex: 1; font-weight: 600; }
+    .toc-dept { color: var(--muted); font-size: 0.78rem; }
+    .toc-avg {
+      font-weight: 700;
+      padding: 0.15rem 0.5rem;
+      border-radius: 99px;
+      font-size: 0.78rem;
+    }
+
+    /* Employee report card */
+    .emp-report {
+      background: white;
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      overflow: hidden;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    .emp-header {
+      padding: 1.25rem 1.75rem;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .emp-avatar {
+      width: 48px; height: 48px;
+      background: rgba(255,255,255,0.25);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; font-weight: 800;
+      flex-shrink: 0;
+    }
+    .emp-header-info h3 { font-size: 1.05rem; font-weight: 700; }
+    .emp-header-info p { font-size: 0.8rem; opacity: 0.85; margin-top: 0.1rem; }
+    .emp-header-score {
+      margin-right: auto;
+      text-align: center;
+    }
+    .emp-score-num { font-size: 1.8rem; font-weight: 800; line-height: 1; }
+    .emp-score-lbl { font-size: 0.7rem; opacity: 0.8; }
+
+    .emp-body { padding: 1.25rem 1.75rem; }
+
+    /* Meta row */
+    .emp-meta-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .meta-item {}
+    .meta-label { font-size: 0.7rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.2rem; }
+    .meta-value { font-size: 0.88rem; font-weight: 600; color: var(--text); }
+
+    /* Ratings grid */
+    .ratings-section h4 {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.75rem;
+    }
+
+    .rating-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.45rem 0;
+      border-bottom: 1px solid #f5f5f5;
+    }
+    .rating-row:last-child { border-bottom: none; }
+    .r-num {
+      width: 18px; height: 18px;
+      background: #e8effe;
+      color: var(--primary);
+      border-radius: 50%;
+      font-size: 0.62rem;
+      font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .r-label { flex: 1; font-size: 0.8rem; color: var(--text); }
+    .r-bar-wrap { width: 100px; flex-shrink: 0; }
+    .r-bar-track { height: 5px; background: var(--border); border-radius: 99px; overflow: hidden; }
+    .r-bar-fill { height: 100%; border-radius: 99px; }
+    .r-score {
+      font-size: 0.75rem;
+      font-weight: 700;
+      min-width: 36px;
+      text-align: center;
+    }
+    .r-scale-lbl {
+      font-size: 0.68rem;
+      color: var(--muted);
+      min-width: 64px;
+      text-align: start;
+    }
+    .r-note {
+      margin-top: 0.2rem;
+      font-size: 0.73rem;
+      color: var(--muted);
+      background: var(--bg);
+      padding: 0.3rem 0.5rem;
+      border-radius: 5px;
+      border-inline-start: 2px solid var(--border);
+    }
+
+    /* Text responses */
+    .text-responses {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+    }
+    .text-responses h4 {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.75rem;
+    }
+    .text-item {
+      margin-bottom: 0.75rem;
+      padding: 0.75rem;
+      background: var(--bg);
+      border-radius: 8px;
+      border-inline-start: 3px solid var(--primary);
+    }
+    .text-item-label { font-size: 0.72rem; font-weight: 700; color: var(--primary); margin-bottom: 0.3rem; }
+    .text-item-val { font-size: 0.83rem; color: var(--text); line-height: 1.6; }
+
+    /* Page footer */
+    .emp-footer {
+      padding: 0.6rem 1.75rem;
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    /* Empty */
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--muted);
+      background: white;
+      border-radius: 12px;
+    }
+    .empty-state i { font-size: 2.5rem; display: block; margin-bottom: 1rem; opacity: 0.4; }
+
+    /* Loading */
+    .loading {
+      text-align: center;
+      padding: 3rem;
+      color: var(--muted);
+    }
+
+    /* ── PRINT STYLES ── */
+    @media print {
+      body { background: white; direction: rtl; }
+      .screen-only, .filter-bar { display: none !important; }
+      .document-wrap { margin: 0; padding: 0; max-width: 100%; }
+      .cover-page, .toc-page, .emp-report { box-shadow: none; border-radius: 0; margin-bottom: 0; }
+      .cover-page { page-break-after: always; border-top: none; border-bottom: 4px solid var(--primary); }
+      .toc-page { page-break-after: always; }
+      .emp-report { page-break-after: always; page-break-inside: avoid; }
+      .emp-report:last-child { page-break-after: avoid; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Screen controls -->
+<div class="screen-only">
+  <div class="ctrl-brand">
+    <div class="ctrl-brand-icon"><i class="bi bi-file-earmark-pdf"></i></div>
+    <div>
+      <h1 id="ctrl-title">طباعة التقرير الشامل</h1>
+      <p id="ctrl-sub">اختر الموظفين ثم اطبع أو احفظ PDF</p>
+    </div>
+  </div>
+  <div class="ctrl-actions">
+    <button class="btn btn-outline" onclick="toggleSelectAll()" id="btn-select-all">
+      <i class="bi bi-check-all"></i> <span id="select-all-lbl">تحديد الكل</span>
+    </button>
+    <button class="btn btn-success" onclick="window.print()" id="btn-print">
+      <i class="bi bi-printer"></i> <span id="print-lbl">طباعة / حفظ PDF</span>
+    </button>
+    <a href="dashboard.html" class="btn btn-outline">
+      <i class="bi bi-arrow-right"></i> <span id="back-lbl">رجوع</span>
+    </a>
+  </div>
+</div>
+
+<!-- Filter bar -->
+<div class="filter-bar screen-only">
+  <label id="lbl-filter-dept">القسم:</label>
+  <select id="f-dept" onchange="applyFilters()">
+    <option value="" id="opt-all-dept">كل الأقسام</option>
+  </select>
+
+  <label id="lbl-filter-date-from">من:</label>
+  <input type="date" id="f-date-from" onchange="applyFilters()" />
+
+  <label id="lbl-filter-date-to">إلى:</label>
+  <input type="date" id="f-date-to" onchange="applyFilters()" />
+
+  <label id="lbl-filter-rating">أدنى تقييم:</label>
+  <select id="f-rating" onchange="applyFilters()">
+    <option value="">الكل</option>
+    <option value="4">4+</option>
+    <option value="3">3+</option>
+    <option value="2">2+</option>
+  </select>
+
+  <div class="selected-count" id="selected-count">0 موظف محدد</div>
+</div>
+
+<!-- Document -->
+<div class="document-wrap" id="document-wrap">
+  <div class="loading"><i class="bi bi-hourglass-split"></i><p>جاري تحميل البيانات...</p></div>
+</div>
+
+<script>
+/* ── DATA ── */
+const Q_META = [
+  {key:'q0',type:'standard'},{key:'q1',type:'standard'},{key:'q2',type:'standard'},
+  {key:'q3',type:'standard'},{key:'q4',type:'standard'},{key:'q5',type:'standard'},
+  {key:'q6',type:'problem'}, {key:'q7',type:'standard'},{key:'q8',type:'knowledge'},
+  {key:'q9',type:'success'}, {key:'q10',type:'development'},{key:'q11',type:'alternative'},
+];
+
+const LABELS = {
+  qLabels: [
+    'سهولة استخدام نظام Odoo','وضوح الشاشات والقوائم','سرعة النظام أثناء العمل',
+    'دقة البيانات والمعلومات','سهولة الوصول للطلبات/المنتجات/التقارير',
+    'توافق النظام مع طريقة العمل اليومية','مستوى المشاكل أو الأخطاء',
+    'الرضا العام عن نظام Odoo','مدى الإلمام والمعرفة بالنظام',
+    'هل النظام ناجح في الشركة؟','هل النظام يحتاج تطوير؟','هل تري ضرورة البحث عن بديل؟',
+  ],
+  scaleLabels: {
+    standard:    {1:'ضعيف جداً',2:'ضعيف',3:'متوسط',4:'جيد',5:'ممتاز'},
+    problem:     {1:'كثيرة جداً',2:'كثيرة',3:'متوسطة',4:'قليلة',5:'لا توجد'},
+    knowledge:   {1:'مبتدئ',2:'أساسي',3:'متوسط',4:'جيد',5:'خبير'},
+    success:     {1:'فاشل',2:'ضعيف',3:'مقبول',4:'جيد',5:'ناجح جداً'},
+    development: {1:'لا يحتاج',2:'بسيط',3:'متوسط',4:'كبير',5:'جذري'},
+    alternative: {1:'لا داعي',2:'ربما',3:'محايد',4:'يُنصح',5:'ضرورة قصوى'},
+  },
+  usageLabels: {daily:'يومياً',weekly:'عدة مرات/أسبوع',rarely:'نادراً',little:'لا يستخدم كثيراً'},
+  problems: 'المشاكل المذكورة',
+  suggestions: 'الاقتراحات',
+  detailsTitle: 'تفاصيل التقييم',
+  textTitle: 'الملاحظات والتعليقات',
+  noteUnder: 'ملاحظة',
+  printedOn: 'طُبع في:',
+  page: 'صفحة',
+};
+
+let allData = [];
+let filtered = [];
+let selected = new Set();
+
+/* ── INIT ── */
+window.addEventListener('DOMContentLoaded', () => {
+  const params = new URLSearchParams(window.location.search);
+  const lang = params.get('lang') || 'ar';
+
+  allData = JSON.parse(localStorage.getItem('odoo_survey_responses') || '[]');
+
+  // Populate dept filter
+  const deptSel = document.getElementById('f-dept');
+  const depts = [...new Set(allData.map(r=>r.department).filter(Boolean))].sort();
+  depts.forEach(d => {
+    const o = document.createElement('option');
+    o.value = d; o.textContent = d;
+    deptSel.appendChild(o);
+  });
+
+  // Pre-fill date filters if passed in URL
+  const df = params.get('dateFrom');
+  const dt = params.get('dateTo');
+  const dept = params.get('dept');
+  if (df) document.getElementById('f-date-from').value = df;
+  if (dt) document.getElementById('f-date-to').value = dt;
+  if (dept) document.getElementById('f-dept').value = dept;
+
+  applyFilters();
+});
+
+function applyFilters() {
+  const dept = document.getElementById('f-dept').value;
+  const dateFrom = document.getElementById('f-date-from').value;
+  const dateTo = document.getElementById('f-date-to').value;
+  const minRating = parseFloat(document.getElementById('f-rating').value) || 0;
+
+  filtered = allData.filter(r => {
+    if (dept && r.department !== dept) return false;
+    if (dateFrom && r.timestamp.slice(0,10) < dateFrom) return false;
+    if (dateTo && r.timestamp.slice(0,10) > dateTo) return false;
+    if (minRating && (r.avgRating||0) < minRating) return false;
+    return true;
+  });
+
+  // Auto-select all filtered
+  selected = new Set(filtered.map(r => r.id));
+  updateSelectedCount();
+  render();
+}
+
+function toggleSelectAll() {
+  if (selected.size === filtered.length) {
+    selected.clear();
+  } else {
+    selected = new Set(filtered.map(r => r.id));
+  }
+  document.querySelectorAll('.emp-checkbox').forEach(cb => {
+    cb.checked = selected.has(cb.dataset.id);
+  });
+  updateSelectedCount();
+  renderDocument();
+}
+
+function toggleEmployee(id, checked) {
+  if (checked) selected.add(id);
+  else selected.delete(id);
+  updateSelectedCount();
+  renderDocument();
+}
+
+function updateSelectedCount() {
+  document.getElementById('selected-count').textContent = `${selected.size} موظف محدد للطباعة`;
+}
+
+/* ── RENDER ── */
+function render() {
+  // Build employee selection list + document
+  const wrap = document.getElementById('document-wrap');
+
+  if (!filtered.length) {
+    wrap.innerHTML = `<div class="empty-state"><i class="bi bi-inbox"></i><p>لا توجد بيانات تطابق الفلاتر المحددة.</p></div>`;
+    return;
+  }
+
+  // Employee checkboxes (screen only)
+  const checkboxHtml = `
+    <div class="screen-only" style="background:white;border-radius:12px;padding:1.25rem 1.75rem;margin-bottom:1rem;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+      <div style="font-size:0.82rem;font-weight:700;color:#6b7280;margin-bottom:0.75rem;text-transform:uppercase;letter-spacing:0.04em;">
+        <i class="bi bi-people"></i> اختر الموظفين للطباعة
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:0.5rem;">
+        ${filtered.map(r => `
+          <label style="display:flex;align-items:center;gap:0.5rem;padding:0.5rem 0.75rem;border:1.5px solid #e5e7eb;border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:600;transition:all 0.15s;"
+            onmouseover="this.style.borderColor='#1a56db'" onmouseout="this.style.borderColor=selected.has('${r.id}')?'#1a56db':'#e5e7eb'">
+            <input type="checkbox" class="emp-checkbox" data-id="${r.id}"
+              ${selected.has(r.id) ? 'checked' : ''}
+              onchange="toggleEmployee('${r.id}', this.checked)"
+              style="width:15px;height:15px;accent-color:#1a56db;" />
+            <span>${esc(r.name)}</span>
+            <span style="color:#9ca3af;font-weight:400;font-size:0.75rem;margin-right:auto;">${esc(r.department)}</span>
+          </label>`).join('')}
+      </div>
+    </div>`;
+
+  wrap.innerHTML = checkboxHtml + '<div id="print-document"></div>';
+  renderDocument();
+}
+
+function renderDocument() {
+  const selectedData = filtered.filter(r => selected.has(r.id))
+    .sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+  const doc = document.getElementById('print-document');
+  if (!doc) return;
+
+  if (!selectedData.length) {
+    doc.innerHTML = `<div class="empty-state"><i class="bi bi-person-x"></i><p>لم تحدد أي موظف للطباعة.</p></div>`;
+    return;
+  }
+
+  const totalAvg = selectedData.reduce((a,r)=>a+(r.avgRating||0),0)/selectedData.length;
+  const depts = new Set(selectedData.map(r=>r.department));
+  const printDate = new Date().toLocaleDateString('ar-SA', {day:'2-digit',month:'long',year:'numeric'});
+  const dateFrom = document.getElementById('f-date-from').value;
+  const dateTo = document.getElementById('f-date-to').value;
+  const periodText = dateFrom && dateTo
+    ? `الفترة: ${dateFrom} — ${dateTo}`
+    : dateFrom ? `من: ${dateFrom}` : dateTo ? `حتى: ${dateTo}` : 'جميع الفترات';
+
+  doc.innerHTML = `
+    ${coverPage(selectedData.length, totalAvg, depts.size, printDate, periodText)}
+    ${tocPage(selectedData)}
+    ${selectedData.map((r,i) => empReport(r, i+1, selectedData.length)).join('')}
+  `;
+}
+
+/* ── COVER PAGE ── */
+function coverPage(count, avg, deptCount, date, period) {
+  const avgColor = avg>=4?'#059669':avg>=3?'#1a56db':avg>=2?'#d97706':'#dc2626';
+  return `
+    <div class="cover-page">
+      <div class="cover-logo"><i class="bi bi-bar-chart-line"></i></div>
+      <h1>التقرير الشامل لاستبيان تقييم نظام Odoo</h1>
+      <h2>مؤسسة تسويق الهدايا العالمية — Gift Mart International</h2>
+      <div class="cover-stats">
+        <div class="cover-stat">
+          <div class="cover-stat-num">${count}</div>
+          <div class="cover-stat-lbl">موظف شارك</div>
+        </div>
+        <div class="cover-stat">
+          <div class="cover-stat-num" style="color:${avgColor};">${avg.toFixed(2)}</div>
+          <div class="cover-stat-lbl">متوسط الرضا / 5</div>
+        </div>
+        <div class="cover-stat">
+          <div class="cover-stat-num">${deptCount}</div>
+          <div class="cover-stat-lbl">قسم مشارك</div>
+        </div>
+      </div>
+      <div class="cover-meta">
+        <div>${period}</div>
+        <div style="margin-top:0.4rem;">تاريخ الطباعة: ${date}</div>
+        <div style="margin-top:0.4rem;">Odoo Usage Evaluation Survey</div>
+      </div>
+    </div>`;
+}
+
+/* ── TOC ── */
+function tocPage(data) {
+  const items = data.map((r, i) => {
+    const avg = r.avgRating || 0;
+    const color = avg>=4?'#059669':avg>=3?'#1a56db':avg>=2?'#d97706':'#dc2626';
+    const bg = avg>=4?'#f0fdf4':avg>=3?'#e8effe':avg>=2?'#fffbeb':'#fef2f2';
+    return `<div class="toc-item">
+      <span class="toc-num">${i+1}</span>
+      <span class="toc-name">${esc(r.name)}</span>
+      <span class="toc-dept">${esc(r.department)}</span>
+      <span class="toc-avg" style="color:${color};background:${bg};">${avg.toFixed(1)}/5</span>
+    </div>`;
+  }).join('');
+
+  return `<div class="toc-page">
+    <div class="toc-title"><i class="bi bi-list-ul"></i> فهرس الموظفين</div>
+    ${items}
+  </div>`;
+}
+
+/* ── EMPLOYEE REPORT ── */
+function empReport(r, idx, total) {
+  const avg = r.avgRating || 0;
+  const avgColor = avg>=4?'#059669':avg>=3?'#1a56db':avg>=2?'#d97706':'#dc2626';
+  const date = new Date(r.timestamp).toLocaleDateString('ar-SA',{day:'2-digit',month:'long',year:'numeric'});
+  const initials = (r.name||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+  const usageTxt = LABELS.usageLabels[r.usage] || r.usage || '—';
+
+  // Ratings rows
+  const ratingRows = Q_META.map((q, i) => {
+    const val = r.ratings?.[q.key];
+    if (!val) return '';
+    const pct = (val/5)*100;
+    const scaleLabel = LABELS.scaleLabels[q.type]?.[val] || '';
+    const color = q.key==='q6'
+      ? (val<=2?'#059669':val<=3?'#eab308':'#ef4444')
+      : (val>=4?'#059669':val>=3?'#1a56db':val>=2?'#f97316':'#ef4444');
+    const noteKey = 'note_'+q.key;
+    const noteVal = r.notes?.[noteKey];
+    return `<div>
+      <div class="rating-row">
+        <span class="r-num">${i+1}</span>
+        <span class="r-label">${LABELS.qLabels[i]}</span>
+        <div class="r-bar-wrap">
+          <div class="r-bar-track">
+            <div class="r-bar-fill" style="width:${pct}%;background:${color};"></div>
+          </div>
+        </div>
+        <span class="r-score" style="color:${color};">${val}/5</span>
+        <span class="r-scale-lbl">${scaleLabel}</span>
+      </div>
+      ${noteVal ? `<div class="r-note"><strong>${LABELS.noteUnder}:</strong> ${esc(noteVal)}</div>` : ''}
+    </div>`;
+  }).filter(Boolean).join('');
+
+  // Text responses
+  const texts = [];
+  if (r.problems) texts.push({label: LABELS.problems, val: r.problems, color:'#dc2626'});
+  if (r.suggestions) texts.push({label: LABELS.suggestions, val: r.suggestions, color:'#1a56db'});
+
+  const textHtml = texts.length ? `
+    <div class="text-responses">
+      <h4>${LABELS.textTitle}</h4>
+      ${texts.map(t=>`<div class="text-item" style="border-inline-start-color:${t.color};">
+        <div class="text-item-label" style="color:${t.color};">${t.label}</div>
+        <div class="text-item-val">${esc(t.val)}</div>
+      </div>`).join('')}
+    </div>` : '';
+
+  return `
+    <div class="emp-report">
+      <div class="emp-header">
+        <div class="emp-avatar">${initials}</div>
+        <div class="emp-header-info">
+          <h3>${esc(r.name)}</h3>
+          <p>${esc(r.department)} · ${usageTxt} · ${date}</p>
+        </div>
+        <div class="emp-header-score">
+          <div class="emp-score-num">${avg.toFixed(1)}</div>
+          <div class="emp-score-lbl">/ 5</div>
+        </div>
+      </div>
+      <div class="emp-body">
+        <div class="emp-meta-row">
+          <div class="meta-item">
+            <div class="meta-label">الاسم</div>
+            <div class="meta-value">${esc(r.name)}</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">القسم</div>
+            <div class="meta-value">${esc(r.department)}</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">تاريخ الإرسال</div>
+            <div class="meta-value">${date}</div>
+          </div>
+        </div>
+        <div class="ratings-section">
+          <h4>${LABELS.detailsTitle}</h4>
+          ${ratingRows}
+        </div>
+        ${textHtml}
+      </div>
+      <div class="emp-footer">
+        <span>مؤسسة تسويق الهدايا العالمية — Odoo Survey</span>
+        <span>موظف ${idx} من ${total}</span>
+      </div>
+    </div>`;
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+</body>
+</html>
