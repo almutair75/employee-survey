@@ -110,8 +110,6 @@ const T = {
     submitNote: 'بإرسال هذا الاستبيان، تؤكد أن إجاباتك صحيحة وصادقة.',
     noteLabel: 'ملاحظة إضافية على هذا السؤال',
     noteHint: '— اختياري —',
-    problemsBoxLabel: 'اذكر أبرز المشكلة أو الخطأ الذي تواجهه',
-    problemsBoxHint: '— اختياري ولكن مفضل —',
     errName: 'يرجى إدخال اسمك الكامل',
     errDept: 'يرجى اختيار القسم',
     errUsage: 'يرجى تحديد مستوى الاستخدام',
@@ -183,8 +181,6 @@ const T = {
     submitNote: 'By submitting, you confirm your answers are accurate and honest.',
     noteLabel: 'Additional note on this question',
     noteHint: '— Optional —',
-    problemsBoxLabel: 'Describe the main problem or error you face',
-    problemsBoxHint: '— Optional but preferred —',
     errName: 'Please enter your full name',
     errDept: 'Please select your department',
     errUsage: 'Please select your usage level',
@@ -238,8 +234,7 @@ const T = {
 /* ── STATE ─────────────────────────── */
 let currentLang = 'ar';
 let ratings = {};
-let notes = {};      // note_q0, note_q1, ...
-let problemsText = '';
+let notes = {};
 
 /* ── STORAGE ───────────────────────── */
 const Storage = {
@@ -501,7 +496,7 @@ function showThankyou() {
 }
 
 function resetSurvey() {
-  ratings = {}; notes = {}; problemsText = '';
+  ratings = {}; notes = {};
   document.getElementById('survey-form')?.reset();
   clearErrors();
   document.getElementById('page-thankyou').style.display = 'none';
