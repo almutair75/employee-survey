@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>معاينة أسئلة الاستبيان — Odoo Survey Preview</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+
+    :root {
+      --primary: #1a56db;
+      --accent: #0891b2;
+      --success: #059669;
+      --warning: #d97706;
+      --danger: #dc2626;
+      --text: #111827;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --bg: #f3f4f6;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Cairo', sans-serif;
+      color: var(--text);
+      background: #e8eaf0;
+      direction: rtl;
+      font-size: 13px;
+    }
+
+    /* ── Screen Controls ── */
+    .topbar {
+      background: white;
+      border-bottom: 1px solid var(--border);
+      padding: 0.75rem 1.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 1rem; flex-wrap: wrap;
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    }
+    .topbar-brand { display: flex; align-items: center; gap: 0.75rem; }
+    .topbar-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-radius: 9px; display: flex; align-items: center; justify-content: center;
+      color: white; font-size: 1rem;
+    }
+    .topbar-brand h1 { font-size: 0.95rem; font-weight: 700; }
+    .topbar-brand p  { font-size: 0.72rem; color: var(--muted); }
+    .topbar-actions  { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.5rem 1rem; border-radius: 8px; border: 1.5px solid;
+      font-family: 'Cairo', sans-serif; font-size: 0.82rem; font-weight: 600;
+      cursor: pointer; transition: all 0.2s; text-decoration: none;
+    }
+    .btn-primary { background: var(--primary); color: white; border-color: var(--primary); }
+    .btn-primary:hover { background: #1342a8; }
+    .btn-outline { background: white; color: #374151; border-color: var(--border); }
+    .btn-outline:hover { border-color: var(--primary); color: var(--primary); background: #f0f4ff; }
+
+    /* Language toggle */
+    .lang-tabs {
+      display: flex; gap: 0.4rem;
+      background: var(--bg); border-radius: 8px; padding: 3px;
+    }
+    .lang-tab {
+      padding: 0.3rem 0.875rem; border-radius: 6px; border: none;
+      font-family: 'Cairo', sans-serif; font-size: 0.78rem; font-weight: 600;
+      cursor: pointer; color: var(--muted); background: transparent;
+      transition: all 0.2s;
+    }
+    .lang-tab.active { background: white; color: var(--primary); box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+
+    /* ── Document ── */
+    .doc-wrap {
+      max-width: 820px;
+      margin: 1.5rem auto;
+      padding: 0 1rem 3rem;
+    }
+
+    /* Cover */
+    .preview-cover {
+      background: white; border-radius: 14px; padding: 2rem 2.5rem;
+      margin-bottom: 1rem; box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      border-top: 5px solid var(--primary);
+      page-break-after: always;
+    }
+    .cover-logo {
+      width: 56px; height: 56px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-radius: 14px; margin: 0 auto 1.25rem;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem; color: white;
+    }
+    .cover-title { font-size: 1.4rem; font-weight: 800; text-align: center; margin-bottom: 0.4rem; }
+    .cover-sub   { font-size: 0.9rem; color: var(--muted); text-align: center; margin-bottom: 1.5rem; }
+
+    .cover-info {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 0.75rem; margin-bottom: 1.25rem;
+    }
+    .cover-info-item {
+      background: var(--bg); border-radius: 10px; padding: 0.75rem 1rem;
+      border: 1px solid var(--border);
+    }
+    .cover-info-lbl { font-size: 0.68rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem; }
+    .cover-info-val { font-size: 0.88rem; font-weight: 600; }
+
+    .cover-note {
+      background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px;
+      padding: 0.75rem 1rem; font-size: 0.8rem; color: #92400e;
+      display: flex; align-items: flex-start; gap: 0.5rem;
+    }
+
+    /* Section Cards */
+    .section-card {
+      background: white; border-radius: 14px; margin-bottom: 1rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07); overflow: hidden;
+      page-break-inside: avoid;
+    }
+    .section-header {
+      padding: 0.875rem 1.5rem;
+      display: flex; align-items: center; gap: 0.75rem;
+      border-bottom: 1px solid var(--border); background: #fafafa;
+    }
+    .section-icon {
+      width: 34px; height: 34px; border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; flex-shrink: 0;
+    }
+    .icon-blue   { background: #e8effe; color: var(--primary); }
+    .icon-cyan   { background: #ecfeff; color: var(--accent); }
+    .icon-purple { background: #f5f3ff; color: #7c3aed; }
+    .icon-green  { background: #f0fdf4; color: var(--success); }
+
+    .section-header h2 { font-size: 0.95rem; font-weight: 700; }
+    .section-header p  { font-size: 0.75rem; color: var(--muted); margin-top: 0.1rem; }
+
+    .section-body { padding: 1.25rem 1.5rem; }
+
+    /* Info Fields (read-only display) */
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+    .field-display {
+      border: 1.5px dashed var(--border); border-radius: 8px;
+      padding: 0.75rem 1rem;
+    }
+    .field-label { font-size: 0.72rem; font-weight: 700; color: var(--muted); margin-bottom: 0.5rem; }
+    .field-placeholder {
+      height: 24px; background: var(--bg); border-radius: 5px;
+      display: flex; align-items: center; padding: 0 0.5rem;
+      font-size: 0.75rem; color: #c4c4c4; font-style: italic;
+    }
+
+    /* Usage Options */
+    .usage-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+    .usage-opt {
+      border: 1.5px solid var(--border); border-radius: 8px;
+      padding: 0.625rem 0.875rem;
+      display: flex; align-items: center; gap: 0.5rem;
+      font-size: 0.82rem; font-weight: 500; color: var(--muted);
+    }
+    .usage-opt-icon { font-size: 1rem; }
+    .usage-radio {
+      width: 16px; height: 16px; border-radius: 50%;
+      border: 2px solid var(--border); margin-inline-start: auto; flex-shrink: 0;
+    }
+
+    /* Rating Questions */
+    .rating-q {
+      padding: 0.875rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .rating-q:last-child { border-bottom: none; }
+
+    .rating-q-top {
+      display: flex; align-items: flex-start; gap: 0.75rem; margin-bottom: 0.625rem;
+    }
+    .q-num {
+      width: 22px; height: 22px; border-radius: 50%;
+      background: #e8effe; color: var(--primary);
+      font-size: 0.65rem; font-weight: 800;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      margin-top: 0.1rem;
+    }
+    .q-text { flex: 1; }
+    .q-label { font-size: 0.88rem; font-weight: 700; color: var(--text); line-height: 1.3; }
+    .q-hint  { font-size: 0.72rem; color: var(--muted); margin-top: 0.25rem; line-height: 1.4; }
+
+    /* Scale Buttons */
+    .scale-row { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+    .scale-btn {
+      display: flex; flex-direction: column; align-items: center;
+      min-width: 58px; padding: 0.4rem 0.5rem;
+      border: 1.5px solid var(--border); border-radius: 8px;
+      background: white;
+    }
+    .scale-num { font-size: 1rem; font-weight: 800; color: var(--muted); line-height: 1; }
+    .scale-lbl { font-size: 0.6rem; color: var(--muted); text-align: center; margin-top: 0.2rem; max-width: 56px; line-height: 1.2; }
+
+    /* Scale colors preview */
+    .scale-btn[data-v="1"] { border-color: #fca5a5; }
+    .scale-btn[data-v="1"] .scale-num { color: #ef4444; }
+    .scale-btn[data-v="2"] { border-color: #fdba74; }
+    .scale-btn[data-v="2"] .scale-num { color: #f97316; }
+    .scale-btn[data-v="3"] { border-color: #fde047; }
+    .scale-btn[data-v="3"] .scale-num { color: #ca8a04; }
+    .scale-btn[data-v="4"] { border-color: #86efac; }
+    .scale-btn[data-v="4"] .scale-num { color: #16a34a; }
+    .scale-btn[data-v="5"] { border-color: #6ee7b7; }
+    .scale-btn[data-v="5"] .scale-num { color: #059669; }
+
+    .note-box-preview {
+      margin-top: 0.5rem;
+      border: 1.5px dashed #d1d5db; border-radius: 7px;
+      padding: 0.5rem 0.75rem;
+      background: #fafafa;
+    }
+    .note-box-lbl { font-size: 0.7rem; color: var(--muted); font-weight: 600; margin-bottom: 0.3rem; }
+    .note-box-area { height: 36px; background: white; border-radius: 5px; border: 1px solid #e5e7eb; }
+
+    /* Text Question */
+    .text-q { margin-bottom: 1rem; }
+    .text-q:last-child { margin-bottom: 0; }
+    .text-q-label { font-size: 0.85rem; font-weight: 700; margin-bottom: 0.4rem; }
+    .text-q-hint  { font-size: 0.72rem; color: var(--muted); margin-bottom: 0.4rem; font-style: italic; }
+    .text-q-area  {
+      border: 1.5px dashed var(--border); border-radius: 8px;
+      padding: 0.5rem 0.75rem; min-height: 60px; background: #fafafa;
+    }
+
+    /* Submit preview */
+    .submit-preview {
+      background: white; border-radius: 14px; padding: 1.5rem;
+      margin-bottom: 1rem; box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      text-align: center;
+    }
+    .submit-btn-preview {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.875rem 2.5rem;
+      background: linear-gradient(135deg, var(--primary), #1342a8);
+      color: white; border-radius: 10px;
+      font-size: 1rem; font-weight: 700;
+      border: none; cursor: default; opacity: 0.85;
+    }
+    .submit-note-preview { font-size: 0.75rem; color: var(--muted); margin-top: 0.75rem; }
+
+    /* Page number footer */
+    .preview-footer {
+      text-align: center; font-size: 0.72rem; color: var(--muted);
+      margin-top: 0.5rem; padding-top: 0.5rem;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ── Print ── */
+    @media print {
+      body { background: white; }
+      .topbar { display: none !important; }
+      .doc-wrap { margin: 0; padding: 0; max-width: 100%; }
+      .section-card, .preview-cover, .submit-preview {
+        box-shadow: none; border-radius: 0; margin-bottom: 0;
+        border: 1px solid #ddd;
+      }
+      .preview-cover { page-break-after: always; }
+      .section-card { page-break-inside: avoid; }
+      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Top Bar -->
+<div class="topbar">
+  <div class="topbar-brand">
+    <div class="topbar-icon"><i class="bi bi-eye"></i></div>
+    <div>
+      <h1 id="tb-title">معاينة أسئلة الاستبيان</h1>
+      <p id="tb-sub">نسخة للمراجعة — لا تُستخدم للتعبئة</p>
+    </div>
+  </div>
+  <div class="topbar-actions">
+    <div class="lang-tabs">
+      <button class="lang-tab active" onclick="setLang('ar')">العربية</button>
+      <button class="lang-tab" onclick="setLang('en')">English</button>
+    </div>
+    <button class="btn btn-primary" onclick="window.print()">
+      <i class="bi bi-printer"></i> <span id="btn-print">طباعة / PDF</span>
+    </button>
+    <a href="dashboard.html" class="btn btn-outline">
+      <i class="bi bi-arrow-right"></i> <span id="btn-back">رجوع</span>
+    </a>
+  </div>
+</div>
+
+<!-- Document -->
+<div class="doc-wrap" id="doc-wrap"></div>
+
+<script>
+/* ══ CONTENT ══ */
+const CONTENT = {
+  ar: {
+    dir: 'rtl', font: "'Cairo', sans-serif",
+    tbTitle: 'معاينة أسئلة الاستبيان',
+    tbSub: 'نسخة للمراجعة — لا تُستخدم للتعبئة',
+    btnPrint: 'طباعة / PDF', btnBack: 'رجوع',
+    coverTitle: 'استبيان تقييم استخدام نظام Odoo',
+    coverSub: 'مؤسسة تسويق الهدايا العالمية — Gift Mart International',
+    coverNote: 'هذه نسخة للمراجعة تُعرض على الإدارة قبل توزيع الاستبيان على الموظفين. الحقول للعرض فقط ولا تقبل الإدخال.',
+    coverInfoLabels: ['عدد الأسئلة','نوع الاستبيان','اللغة','مدة التعبئة التقريبية'],
+    coverInfoVals: ['12 سؤال تقييم + 1 اقتراحات','تقييم متعدد المستويات','عربي / إنجليزي','5-7 دقائق'],
+
+    s1Title: 'معلومات الموظف', s1Sub: 'البيانات الأساسية',
+    lblName: 'اسم الموظف *', lblDept: 'القسم / الإدارة *',
+    namePh: 'يكتب الموظف اسمه الكامل', deptPh: 'يختار من القائمة',
+
+    s2Title: 'مستوى الاستخدام', s2Sub: 'كم مرة تستخدم نظام Odoo؟',
+    lblUsage: 'مدى استخدامك لنظام Odoo *',
+    usageOpts: [
+      {icon:'📅', label:'يومياً'},
+      {icon:'📆', label:'عدة مرات في الأسبوع'},
+      {icon:'🔄', label:'نادراً'},
+      {icon:'💤', label:'لا أستخدمه كثيراً'},
+    ],
+
+    s3Title: 'أسئلة التقييم', s3Sub: 'قيّم كل جانب حسب مقياس التقييم المحدد لكل سؤال',
+    noteLabel: 'ملاحظة إضافية على هذا السؤال', noteHint: '— اختياري —',
+
+    ratingQs: [
+      { label:'سهولة استخدام نظام Odoo', hint:'1 = صعب الاستخدام جداً  •  5 = سهل جداً ومريح', type:'standard' },
+      { label:'وضوح الشاشات والقوائم', hint:'1 = الشاشات غير واضحة ومربكة  •  5 = واضحة جداً وسهلة الفهم', type:'standard' },
+      { label:'سرعة النظام أثناء العمل', hint:'1 = بطيء جداً ويعطل العمل  •  5 = سريع جداً ولا توجد تأخيرات', type:'standard' },
+      { label:'دقة البيانات والمعلومات في النظام', hint:'1 = بيانات غير دقيقة وكثيرة الأخطاء  •  5 = دقيقة جداً ويمكن الاعتماد عليها', type:'standard' },
+      { label:'سهولة الوصول للطلبات أو المنتجات أو التقارير', hint:'1 = صعب الوصول ويستغرق وقتاً طويلاً  •  5 = وصول سريع وسهل لكل شيء', type:'standard' },
+      { label:'مدى توافق النظام مع طريقة عملك اليومية', hint:'1 = لا يتوافق مع طريقة عملي إطلاقاً  •  5 = يتوافق تماماً مع احتياجاتي اليومية', type:'standard' },
+      { label:'مستوى المشاكل أو الأخطاء التي تواجهك أثناء الاستخدام', hint:'1 = أواجه مشاكل وأخطاء كثيرة جداً  •  5 = لا أواجه مشاكل تقريباً', type:'problem' },
+      { label:'مدى رضاك العام عن نظام Odoo', hint:'1 = غير راضٍ إطلاقاً  •  5 = راضٍ تماماً عن النظام', type:'standard' },
+      { label:'مدى إلمامك ومعرفتك بنظام Odoo', hint:'1 = مبتدئ — لا أعرف كيف أستخدمه  •  5 = خبير — أتقن استخدامه بالكامل', type:'knowledge' },
+      { label:'هل تعتقد أن نظام Odoo ناجح في الشركة؟', hint:'1 = فاشل تماماً ولا يلبي الاحتياجات  •  5 = ناجح جداً ويحقق الأهداف', type:'success' },
+      { label:'هل النظام يحتاج إلى تطوير وتحسين؟', hint:'1 = لا يحتاج تطوير على الإطلاق  •  5 = يحتاج تطوير جذري وشامل', type:'development' },
+      { label:'هل تري ضرورة البحث عن نظام بديل؟', hint:'1 = لا داعي للبديل — النظام ممتاز  •  5 = ضرورة قصوى للبحث عن بديل', type:'alternative' },
+    ],
+
+    scales: {
+      standard:    {1:'ضعيف جداً',2:'ضعيف',3:'متوسط',4:'جيد',5:'ممتاز'},
+      problem:     {1:'كثيرة جداً',2:'كثيرة',3:'متوسطة',4:'قليلة',5:'لا توجد'},
+      knowledge:   {1:'مبتدئ',2:'أساسي',3:'متوسط',4:'جيد',5:'خبير'},
+      success:     {1:'فاشل',2:'ضعيف',3:'مقبول',4:'جيد',5:'ناجح جداً'},
+      development: {1:'لا يحتاج',2:'بسيط',3:'متوسط',4:'كبير',5:'جذري'},
+      alternative: {1:'لا داعي',2:'ربما',3:'محايد',4:'يُنصح',5:'ضرورة قصوى'},
+    },
+
+    s4Title: 'اقتراحات عامة', s4Sub: 'شاركنا اقتراحاتك لتحسين النظام',
+    sugLabel: 'اقتراحاتك لتحسين النظام',
+    sugHint: '— اختياري —',
+
+    submitLabel: 'إرسال الاستبيان',
+    submitNote: 'بإرسال هذا الاستبيان، تؤكد أن إجاباتك صحيحة وصادقة.',
+    footerNote: 'استبيان تقييم استخدام نظام Odoo — مؤسسة تسويق الهدايا العالمية',
+  },
+
+  en: {
+    dir: 'ltr', font: "'Inter', sans-serif",
+    tbTitle: 'Survey Questions Preview',
+    tbSub: 'Review copy — not for submission',
+    btnPrint: 'Print / PDF', btnBack: 'Back',
+    coverTitle: 'Odoo Usage Evaluation Survey',
+    coverSub: 'Gift Mart International — مؤسسة تسويق الهدايا العالمية',
+    coverNote: 'This is a management review copy shown before distributing the survey to employees. Fields are for display only.',
+    coverInfoLabels: ['Questions','Survey Type','Language','Est. Completion Time'],
+    coverInfoVals: ['12 rating questions + suggestions','Multi-level evaluation','Arabic / English','5-7 minutes'],
+
+    s1Title: 'Employee Information', s1Sub: 'Basic details',
+    lblName: 'Employee Name *', lblDept: 'Department *',
+    namePh: 'Employee writes full name', deptPh: 'Select from list',
+
+    s2Title: 'Usage Level', s2Sub: 'How often do you use Odoo?',
+    lblUsage: 'How often do you use Odoo *',
+    usageOpts: [
+      {icon:'📅', label:'Daily'},
+      {icon:'📆', label:'Several times a week'},
+      {icon:'🔄', label:'Rarely'},
+      {icon:'💤', label:"Don't use it much"},
+    ],
+
+    s3Title: 'Rating Questions', s3Sub: 'Rate each aspect according to its specific scale',
+    noteLabel: 'Additional note on this question', noteHint: '— Optional —',
+
+    ratingQs: [
+      { label:'Ease of use of Odoo', hint:'1 = Very hard to use  •  5 = Very easy and comfortable', type:'standard' },
+      { label:'Clarity of screens and menus', hint:'1 = Screens are unclear and confusing  •  5 = Very clear and easy to understand', type:'standard' },
+      { label:'System speed during work', hint:'1 = Very slow, disrupts work  •  5 = Very fast, no delays', type:'standard' },
+      { label:'Accuracy of data and information', hint:'1 = Inaccurate data, many errors  •  5 = Very accurate and reliable', type:'standard' },
+      { label:'Ease of accessing orders, products, or reports', hint:'1 = Hard to access, takes too long  •  5 = Fast and easy access to everything', type:'standard' },
+      { label:'Alignment of the system with your daily workflow', hint:'1 = Does not fit my workflow at all  •  5 = Perfectly fits my daily needs', type:'standard' },
+      { label:'Level of problems or errors you encounter', hint:'1 = I face many problems and errors  •  5 = Almost no problems at all', type:'problem' },
+      { label:'Your overall satisfaction with Odoo', hint:'1 = Not satisfied at all  •  5 = Completely satisfied', type:'standard' },
+      { label:'Your familiarity and knowledge of Odoo', hint:"1 = Beginner — don't know how to use it  •  5 = Expert — fully proficient", type:'knowledge' },
+      { label:'Do you think Odoo is successful in the company?', hint:'1 = Complete failure, does not meet needs  •  5 = Very successful, achieves all goals', type:'success' },
+      { label:'Does the system need development and improvement?', hint:'1 = No development needed at all  •  5 = Radical and comprehensive development needed', type:'development' },
+      { label:'Do you see a need to look for an alternative system?', hint:'1 = No need for alternative — system is excellent  •  5 = Critical need to find alternative', type:'alternative' },
+    ],
+
+    scales: {
+      standard:    {1:'Very Poor',2:'Poor',3:'Average',4:'Good',5:'Excellent'},
+      problem:     {1:'Very Many',2:'Many',3:'Moderate',4:'Few',5:'None'},
+      knowledge:   {1:'Beginner',2:'Basic',3:'Intermediate',4:'Good',5:'Expert'},
+      success:     {1:'Failure',2:'Poor',3:'Acceptable',4:'Good',5:'Very Successful'},
+      development: {1:'Not Needed',2:'Minor',3:'Moderate',4:'Major',5:'Radical'},
+      alternative: {1:'Not Needed',2:'Maybe',3:'Neutral',4:'Recommended',5:'Critical'},
+    },
+
+    s4Title: 'General Suggestions', s4Sub: 'Share your suggestions to improve the system',
+    sugLabel: 'Your suggestions to improve the system',
+    sugHint: '— Optional —',
+
+    submitLabel: 'Submit Survey',
+    submitNote: 'By submitting, you confirm your answers are accurate and honest.',
+    footerNote: 'Odoo Usage Evaluation Survey — Gift Mart International',
+  },
+};
+
+/* ══ STATE ══ */
+let currentLang = 'ar';
+
+/* ══ RENDER ══ */
+function setLang(lang) {
+  currentLang = lang;
+  document.querySelectorAll('.lang-tab').forEach(t => t.classList.toggle('active', t.textContent.includes(lang==='ar'?'العربية':'English')));
+  render();
+}
+
+function render() {
+  const C = CONTENT[currentLang];
+  const isAr = currentLang === 'ar';
+
+  document.documentElement.setAttribute('dir', C.dir);
+  document.documentElement.setAttribute('lang', currentLang);
+  document.body.style.fontFamily = C.font;
+
+  document.getElementById('tb-title').textContent   = C.tbTitle;
+  document.getElementById('tb-sub').textContent     = C.tbSub;
+  document.getElementById('btn-print').textContent  = C.btnPrint;
+  document.getElementById('btn-back').textContent   = C.btnBack;
+
+  const wrap = document.getElementById('doc-wrap');
+
+  // Cover
+  const coverInfo = C.coverInfoLabels.map((lbl,i) => `
+    <div class="cover-info-item">
+      <div class="cover-info-lbl">${lbl}</div>
+      <div class="cover-info-val">${C.coverInfoVals[i]}</div>
+    </div>`).join('');
+
+  // Section 1: Employee Info
+  const sec1 = `
+    <div class="section-card">
+      <div class="section-header">
+        <div class="section-icon icon-blue"><i class="bi bi-person-badge"></i></div>
+        <div><h2>${C.s1Title}</h2><p>${C.s1Sub}</p></div>
+      </div>
+      <div class="section-body">
+        <div class="field-row">
+          <div class="field-display">
+            <div class="field-label">${C.lblName}</div>
+            <div class="field-placeholder">${C.namePh}</div>
+          </div>
+          <div class="field-display">
+            <div class="field-label">${C.lblDept}</div>
+            <div class="field-placeholder">${C.deptPh}</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+  // Section 2: Usage
+  const usageOpts = C.usageOpts.map(o => `
+    <div class="usage-opt">
+      <span class="usage-opt-icon">${o.icon}</span>
+      <span>${o.label}</span>
+      <span class="usage-radio"></span>
+    </div>`).join('');
+
+  const sec2 = `
+    <div class="section-card">
+      <div class="section-header">
+        <div class="section-icon icon-cyan"><i class="bi bi-activity"></i></div>
+        <div><h2>${C.s2Title}</h2><p>${C.s2Sub}</p></div>
+      </div>
+      <div class="section-body">
+        <div class="field-label" style="margin-bottom:0.625rem;">${C.lblUsage}</div>
+        <div class="usage-grid">${usageOpts}</div>
+      </div>
+    </div>`;
+
+  // Section 3: Rating Questions
+  const ratingQsHtml = C.ratingQs.map((q, i) => {
+    const scale = C.scales[q.type] || C.scales.standard;
+    const scaleBtns = [1,2,3,4,5].map(v => `
+      <div class="scale-btn" data-v="${v}">
+        <div class="scale-num">${v}</div>
+        <div class="scale-lbl">${scale[v]}</div>
+      </div>`).join('');
+
+    return `
+      <div class="rating-q">
+        <div class="rating-q-top">
+          <div class="q-num">${i+1}</div>
+          <div class="q-text">
+            <div class="q-label">${q.label}</div>
+            <div class="q-hint">${q.hint}</div>
+          </div>
+        </div>
+        <div class="scale-row">${scaleBtns}</div>
+        <div class="note-box-preview">
+          <div class="note-box-lbl">${C.noteLabel} <span style="font-weight:400;color:#aaa;">${C.noteHint}</span></div>
+          <div class="note-box-area"></div>
+        </div>
+      </div>`;
+  }).join('');
+
+  const sec3 = `
+    <div class="section-card">
+      <div class="section-header">
+        <div class="section-icon icon-purple"><i class="bi bi-star-half"></i></div>
+        <div><h2>${C.s3Title}</h2><p>${C.s3Sub}</p></div>
+      </div>
+      <div class="section-body">${ratingQsHtml}</div>
+    </div>`;
+
+  // Section 4: Suggestions
+  const sec4 = `
+    <div class="section-card">
+      <div class="section-header">
+        <div class="section-icon icon-green"><i class="bi bi-lightbulb"></i></div>
+        <div><h2>${C.s4Title}</h2><p>${C.s4Sub}</p></div>
+      </div>
+      <div class="section-body">
+        <div class="text-q">
+          <div class="text-q-label">${C.sugLabel}</div>
+          <div class="text-q-hint">${C.sugHint}</div>
+          <div class="text-q-area" style="min-height:80px;"></div>
+        </div>
+      </div>
+    </div>`;
+
+  // Submit preview
+  const submitSec = `
+    <div class="submit-preview">
+      <button class="submit-btn-preview">
+        <i class="bi bi-send"></i> ${C.submitLabel}
+      </button>
+      <p class="submit-note-preview">${C.submitNote}</p>
+    </div>`;
+
+  // Footer
+  const footer = `<div class="preview-footer">${C.footerNote}</div>`;
+
+  wrap.innerHTML = `
+    <div class="preview-cover">
+      <div class="cover-logo"><i class="bi bi-bar-chart-line"></i></div>
+      <div class="cover-title">${C.coverTitle}</div>
+      <div class="cover-sub">${C.coverSub}</div>
+      <div class="cover-info">${coverInfo}</div>
+      <div class="cover-note">
+        <i class="bi bi-info-circle" style="flex-shrink:0;margin-top:2px;"></i>
+        <span>${C.coverNote}</span>
+      </div>
+    </div>
+    ${sec1}${sec2}${sec3}${sec4}${submitSec}${footer}`;
+}
+
+render();
+</script>
+</body>
+</html>
