@@ -357,10 +357,10 @@
       <i class="bi bi-check-all"></i> <span id="lbl-toggle-all">تحديد الكل</span>
     </button>
     <button class="btn btn-success" onclick="window.print()">
-      <i class="bi bi-printer-fill"></i> طباعة / PDF
+      <i class="bi bi-printer-fill"></i> <span id="btn-print-txt">طباعة / PDF</span>
     </button>
     <a href="dashboard.html" class="btn btn-outline">
-      <i class="bi bi-arrow-right"></i> رجوع
+      <i class="bi bi-arrow-right"></i> <span id="btn-close-txt">رجوع</span>
     </a>
   </div>
 </div>
@@ -509,16 +509,19 @@ addEventListener('DOMContentLoaded', () => {
   document.documentElement.setAttribute('lang', lang);
   document.body.style.fontFamily = lang === 'ar' ? "'Cairo', sans-serif" : "'Inter', sans-serif";
 
-  // Update static UI text
-  document.getElementById('btn-print-txt').textContent = L.ui.printBtn;
-  document.getElementById('btn-close-txt').textContent = L.ui.closeBtn;
-  document.getElementById('lbl-toggle-all').textContent = L.ui.selectAll;
-  document.getElementById('f-dept').options[0].textContent = L.ui.allDepts;
-  document.getElementById('f-rating').options[0].textContent = L.ui.allRatings;
-  document.getElementById('lbl-f-dept').textContent = L.ui.lblDept;
-  document.getElementById('lbl-f-from').textContent = L.ui.lblFrom;
-  document.getElementById('lbl-f-to').textContent = L.ui.lblTo;
-  document.getElementById('lbl-f-rating').textContent = L.ui.lblRating;
+  // Update static UI text — with null safety
+  const setTxt = (id, val) => { const e = document.getElementById(id); if(e) e.textContent = val; };
+  const setOpt = (id, val) => { const e = document.getElementById(id); if(e && e.options && e.options[0]) e.options[0].textContent = val; };
+
+  setTxt('btn-print-txt', L.ui.printBtn);
+  setTxt('btn-close-txt', L.ui.closeBtn);
+  setTxt('lbl-toggle-all', L.ui.selectAll);
+  setOpt('f-dept', L.ui.allDepts);
+  setOpt('f-rating', L.ui.allRatings);
+  setTxt('lbl-f-dept', L.ui.lblDept);
+  setTxt('lbl-f-from', L.ui.lblFrom);
+  setTxt('lbl-f-to', L.ui.lblTo);
+  setTxt('lbl-f-rating', L.ui.lblRating);
 
   // Loading message in correct language
   const loadTxt = document.getElementById('loading-txt');
