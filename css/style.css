@@ -1611,21 +1611,50 @@ body.dash-rtl .modal-body { direction: rtl; text-align: right; }
     display: flex; align-items: center; gap: 0.5rem;
     margin-bottom: 0.5rem; font-size: 11px;
   }
-  .print-bar-label { min-width: 160px; font-weight: 600; color: #111; text-align: right; }
-  .print-bar-track {
-    flex: 1; height: 14px; background: #f0f0f0;
-    border-radius: 99px; overflow: hidden;
+  .print-bar-label {
+    min-width: 160px; font-weight: 600; color: #111;
+    text-align: right; font-size: 10px; line-height: 1.3;
   }
-  .print-bar-fill { height: 100%; border-radius: 99px; }
-  .print-bar-val { min-width: 48px; font-weight: 700; font-size: 11px; }
+  .print-bar-track {
+    flex: 1; height: 14px; background: #e5e7eb !important;
+    border-radius: 99px; overflow: hidden;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .print-bar-fill {
+    height: 100%; border-radius: 99px;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .print-bar-val {
+    min-width: 60px; font-weight: 700; font-size: 10px;
+    white-space: nowrap;
+  }
 
   /* Usage bars for print */
   .print-usage-row {
     display: flex; align-items: center; gap: 0.5rem;
-    margin-bottom: 0.4rem; font-size: 11px;
+    margin-bottom: 0.5rem; font-size: 11px;
   }
-  .print-usage-label { min-width: 130px; font-weight: 600; text-align: right; }
-  .print-usage-track { flex: 1; height: 12px; background: #f0f0f0; border-radius: 99px; overflow: hidden; }
-  .print-usage-fill  { height: 100%; border-radius: 99px; }
-  .print-usage-val   { min-width: 60px; font-size: 10px; color: #6b7280; }
+  .print-usage-label {
+    min-width: 140px; font-weight: 600; text-align: right; font-size: 10px;
+  }
+  .print-usage-track {
+    flex: 1; height: 12px; background: #e5e7eb !important;
+    border-radius: 99px; overflow: hidden;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .print-usage-fill {
+    height: 100%; border-radius: 99px;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .print-usage-val { min-width: 60px; font-size: 10px; color: #374151; }
+
+  /* Force background colors to print */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
 }

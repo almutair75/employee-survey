@@ -22,8 +22,8 @@ const CONFIG = {
      ══════════════════════════════════════════ */
   survey: {
     dateOpen:  '2026-06-14T00:00:00',   // ← تاريخ الفتح
-    dateClose: '2026-06-17T23:59:59',   // ← تاريخ الإغلاق (3 أيام)
-    roundName: 'الجولة الأولى — يونيو 2026',  // ← اسم الجولة يظهر في الشاشة
+    dateClose: '2026-06-17T17:00:00',   // ← تاريخ الإغلاق
+    roundName: 'Round 1 — June 2026',   // ← اسم الجولة
   },
 };
 
@@ -622,13 +622,13 @@ function showToast(msg, type='') {
 function fillPeriodBanner() {
   const open  = new Date(CONFIG.survey.dateOpen);
   const close = new Date(CONFIG.survey.dateClose);
-  const fmtAr = d => d.toLocaleString('ar-SA', {
+  const fmt = d => d.toLocaleString('en-GB', {
     day:'2-digit', month:'long', year:'numeric',
-    hour:'2-digit', minute:'2-digit'
+    hour:'2-digit', minute:'2-digit', hour12: true
   });
   const el = (id, txt) => { const e = document.getElementById(id); if(e) e.textContent = txt; };
-  el('period-open',  fmtAr(open));
-  el('period-close', fmtAr(close));
+  el('period-open',  fmt(open));
+  el('period-close', fmt(close));
   el('period-round', CONFIG.survey.roundName);
 }
 fillPeriodBanner();
