@@ -257,18 +257,17 @@ const Storage = {
     }
     if (CONFIG.mode === 'firebase') {
       try {
-        const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
-        const { getFirestore, collection, addDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
-        const app = initializeApp({
+        const cfg = {
           apiKey: "AIzaSyAK2-UBMDtyvkPGRGXJLXIq311U4N32fVo",
           authDomain: "employee-survey-7a907.firebaseapp.com",
           projectId: "employee-survey-7a907",
           storageBucket: "employee-survey-7a907.firebasestorage.app",
           messagingSenderId: "936069019815",
           appId: "1:936069019815:web:b63cb3a565e57f3ec4c382"
-        }, 'survey-app');
-        const db = getFirestore(app);
-        await addDoc(collection(db, CONFIG.firebase.collection), data);
+        };
+        const app = firebase.apps.find(a=>a.name==='survey') || firebase.initializeApp(cfg,'survey');
+        const db  = firebase.firestore(app);
+        await db.collection(CONFIG.firebase.collection).add(data);
         return { success: true };
       } catch (err) {
         console.error('Firebase error:', err);

@@ -308,27 +308,28 @@ function applyDashLang() {
 function setTxt(id, v) { const e = document.getElementById(id); if (e) e.textContent = v; }
 
 /* ── DATA ── */
+const FB_CFG = {
+  apiKey: "AIzaSyAK2-UBMDtyvkPGRGXJLXIq311U4N32fVo",
+  authDomain: "employee-survey-7a907.firebaseapp.com",
+  projectId: "employee-survey-7a907",
+  storageBucket: "employee-survey-7a907.firebasestorage.app",
+  messagingSenderId: "936069019815",
+  appId: "1:936069019815:web:b63cb3a565e57f3ec4c382"
+};
+
+function getDB() {
+  const app = firebase.apps.find(a=>a.name==='dash') || firebase.initializeApp(FB_CFG,'dash');
+  return firebase.firestore(app);
+}
+
 async function loadData() {
   if (DASH_CONFIG.mode === 'demo') {
     return JSON.parse(localStorage.getItem('odoo_survey_responses') || '[]');
   }
   if (DASH_CONFIG.mode === 'firebase') {
     try {
-      const { initializeApp, getApps } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
-      const { getFirestore, collection, getDocs, query, orderBy } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
-      const firebaseConfig = {
-        apiKey: "AIzaSyAK2-UBMDtyvkPGRGXJLXIq311U4N32fVo",
-        authDomain: "employee-survey-7a907.firebaseapp.com",
-        projectId: "employee-survey-7a907",
-        storageBucket: "employee-survey-7a907.firebasestorage.app",
-        messagingSenderId: "936069019815",
-        appId: "1:936069019815:web:b63cb3a565e57f3ec4c382"
-      };
-      const app = getApps().find(a=>a.name==='dash-app') ||
-                  initializeApp(firebaseConfig, 'dash-app');
-      const db = getFirestore(app);
-      const q = query(collection(db, 'survey_responses'), orderBy('timestamp', 'desc'));
-      const snap = await getDocs(q);
+      const db   = getDB();
+      const snap = await db.collection('survey_responses').orderBy('timestamp','desc').get();
       return snap.docs.map(d => ({ id: d.id, ...d.data() }));
     } catch (err) {
       console.error('Firebase load error:', err);
@@ -974,25 +975,11 @@ async function deleteResponse(id, name) {
   const t = DT[dashLang];
   try {
     if (DASH_CONFIG.mode === 'firebase') {
-      const { initializeApp, getApps } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
-      const { getFirestore, doc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
-      const firebaseConfig = {
-        apiKey: "AIzaSyAK2-UBMDtyvkPGRGXJLXIq311U4N32fVo",
-        authDomain: "employee-survey-7a907.firebaseapp.com",
-        projectId: "employee-survey-7a907",
-        storageBucket: "employee-survey-7a907.firebasestorage.app",
-        messagingSenderId: "936069019815",
-        appId: "1:936069019815:web:b63cb3a565e57f3ec4c382"
-      };
-      const app = getApps().find(a=>a.name==='dash-app') ||
-                  initializeApp(firebaseConfig, 'dash-app');
-      const db = getFirestore(app);
-      await deleteDoc(doc(db, 'survey_responses', id));
+      const db = getDB();
+      await db.collection('survey_responses').doc(id).delete();
     } else {
-      // Demo mode: delete from localStorage
       const all = JSON.parse(localStorage.getItem('odoo_survey_responses') || '[]');
-      const updated = all.filter(r => r.id !== id);
-      localStorage.setItem('odoo_survey_responses', JSON.stringify(updated));
+      localStorage.setItem('odoo_survey_responses', JSON.stringify(all.filter(r => r.id !== id)));
     }
     // Remove from local state and re-render
     allResponses = allResponses.filter(r => r.id !== id);
