@@ -12,6 +12,19 @@ const CONFIG = {
     anonKey: 'SUPABASE_ANON_KEY_HERE',
     table: 'survey_responses',
   },
+
+  /* ══════════════════════════════════════════
+     تحكم بفترة الاستبيان
+     ══════════════════════════════════════════
+     dateOpen  : تاريخ وساعة فتح الاستبيان
+     dateClose : تاريخ وساعة إغلاق الاستبيان
+     اضبط التواريخ ثم ارفع الملف — سيُغلق تلقائياً
+     ══════════════════════════════════════════ */
+  survey: {
+    dateOpen:  '2026-06-14T00:00:00',   // ← تاريخ الفتح
+    dateClose: '2026-06-17T23:59:59',   // ← تاريخ الإغلاق (3 أيام)
+    roundName: 'الجولة الأولى — يونيو 2026',  // ← اسم الجولة يظهر في الشاشة
+  },
 };
 
 /* ── RATING QUESTIONS CONFIG ─────────────────────────────────
@@ -452,6 +465,21 @@ function clearErrors() {
 
 /* ── SUBMIT ────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
+
+  // ── تحقق من فترة الاستبيان ──
+  const now   = new Date();
+  const open  = new Date(CONFIG.survey.dateOpen);
+  const close = new Date(CONFIG.survey.dateClose);
+
+  if (now < open) {
+    showClosedPage('notyet');
+    return;
+  }
+  if (now > close) {
+    showClosedPage('closed');
+    return;
+  }
+
   const form = document.getElementById('survey-form');
   if (!form) return;
   form.addEventListener('input', updateProgress);
@@ -518,6 +546,66 @@ function resetSurvey() {
   clearErrors();
   document.getElementById('page-thankyou').style.display = 'none';
   document.getElementById('page-lang').style.display = 'flex';
+}
+
+/* ── SURVEY CLOSED / NOT YET PAGE ─── */
+function showClosedPage(reason) {
+  // Hide all pages
+  ['page-lang','page-survey','page-thankyou'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+
+  const isAr = document.documentElement.lang === 'ar' || true; // default AR
+  const open  = new Date(CONFIG.survey.dateOpen);
+  const close = new Date(CONFIG.survey.dateClose);
+  const fmt = d => d.toLocaleDateString('ar-SA', { day:'2-digit', month:'long', year:'numeric' });
+  const fmtFull = d => d.toLocaleString('ar-SA', { day:'2-digit', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit' });
+
+  const isClosed = reason === 'closed';
+
+  const html = `
+    <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;
+      background:linear-gradient(135deg,#f0f4ff,#e8f5fe,#f0fdf4);padding:2rem;
+      font-family:'Cairo',sans-serif;direction:rtl;">
+      <div style="background:white;border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,0.10);
+        padding:3rem 2.5rem;text-align:center;max-width:480px;width:100%;">
+        <div style="width:72px;height:72px;border-radius:50%;margin:0 auto 1.5rem;
+          display:flex;align-items:center;justify-content:center;font-size:2rem;
+          background:${isClosed?'#fef2f2':'#fffbeb'};color:${isClosed?'#dc2626':'#d97706'};">
+          ${isClosed ? '🔒' : '⏳'}
+        </div>
+        <h1 style="font-size:1.4rem;font-weight:800;color:#111827;margin-bottom:0.5rem;">
+          ${isClosed ? 'الاستبيان مغلق' : 'الاستبيان لم يبدأ بعد'}
+        </h1>
+        <p style="color:#6b7280;font-size:0.9rem;margin-bottom:1.5rem;">
+          ${isClosed
+            ? `انتهت فترة تعبئة استبيان تقييم نظام Odoo.`
+            : `استبيان تقييم نظام Odoo سيُفتح قريباً.`}
+        </p>
+        <div style="background:#f9fafb;border-radius:10px;padding:1rem 1.25rem;
+          border:1px solid #e5e7eb;text-align:right;font-size:0.82rem;">
+          <div style="margin-bottom:0.5rem;display:flex;justify-content:space-between;">
+            <span style="color:#9ca3af;">الجولة</span>
+            <span style="font-weight:700;color:#111827;">${CONFIG.survey.roundName}</span>
+          </div>
+          <div style="margin-bottom:0.5rem;display:flex;justify-content:space-between;">
+            <span style="color:#9ca3af;">تاريخ الفتح</span>
+            <span style="font-weight:600;color:#059669;">${fmtFull(open)}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;">
+            <span style="color:#9ca3af;">تاريخ الإغلاق</span>
+            <span style="font-weight:600;color:#dc2626;">${fmtFull(close)}</span>
+          </div>
+        </div>
+        ${isClosed ? `
+        <p style="margin-top:1.25rem;font-size:0.8rem;color:#9ca3af;">
+          للاستفسار تواصل مع مسؤول تقنية المعلومات
+        </p>` : ''}
+      </div>
+    </div>`;
+
+  document.body.insertAdjacentHTML('beforeend', html);
 }
 
 let toastTimeout;

@@ -200,7 +200,7 @@ const DT = {
 };
 
 /* ── STATE ── */
-let dashLang = 'en';
+let dashLang = 'ar';   // ← افتراضي عربي
 let allResponses = [];
 let filteredResponses = [];
 let barChart = null;
@@ -433,56 +433,42 @@ function renderKPIs() {
   setTxt('kpi-latest', new Date(latest.timestamp).toLocaleDateString(dashLang==='ar'?'ar-SA':'en-GB'));
 }
 
-/* ── OPERATIONAL BAR CHART (q0–q7) ── */
-// Questions q0–q5, q7 = higher is better (standard)
-// q6 = problems: 1=many, 5=none — we INVERT for display so bar height = severity of problems
-// i.e. display value = 6 - raw value, so if employee picks 1 (many problems), bar shows 5 (high problem level)
+/* ── OPERATIONAL BAR CHART (q0–q5, q7 only — standard questions) ── */
 function renderOperationalChart() {
   const t = DT[dashLang];
   const ctx = document.getElementById('chart-bar').getContext('2d');
 
-  // Only first 8 questions (q0–q7)
-  const opMeta = Q_META.slice(0, 8);
-  const opLabels = t.qLabels.slice(0, 8);
+  // Only standard questions — exclude q6 (problems)
+  const stdMeta   = Q_META.filter(q => q.key !== 'q6').slice(0, 7); // q0–q5, q7
+  const stdLabels = [
+    ...t.qLabels.slice(0, 6),   // q0–q5
+    t.qLabels[7],                // q7 (skip q6)
+  ];
 
-  const avgs = opMeta.map((q, i) => {
-    const vals = filteredResponses.map(r => r.ratings?.[q.key]).filter(v => v != null);
-    if (!vals.length) return 0;
-    const raw = vals.reduce((a,b)=>a+b,0) / vals.length;
-    // q6 = problems question: invert so high bar = bad (many problems)
-    return q.key === 'q6' ? +(6 - raw).toFixed(2) : +raw.toFixed(2);
-  });
-
-  // Color: green=good, red=bad — but q6 is inverted, so high = bad
-  const colors = avgs.map((v, i) => {
-    if (opMeta[i].key === 'q6') {
-      // inverted: high = many problems = red
-      return v >= 4 ? '#ef4444' : v >= 3 ? '#f97316' : v >= 2 ? '#eab308' : '#10b981';
-    }
-    return v >= 4 ? '#10b981' : v >= 3 ? '#1a56db' : v >= 2 ? '#f97316' : '#ef4444';
-  });
-
-  // Build multiline labels: question short name + respondent count below
   const respCount = filteredResponses.length;
-  const countSuffix = dashLang === 'ar'
-    ? `${respCount} موظف`
-    : `${respCount} resp.`;
+  const countSuffix = dashLang === 'ar' ? `${respCount} موظف` : `${respCount} resp.`;
 
-  // Wrap long labels into 2 lines for Chart.js (array = multiline)
-  const shortLabels = opLabels.map((l, i) => {
-    // shorten to max ~16 chars per line
+  const avgs = stdMeta.map(q => {
+    const vals = filteredResponses.map(r => r.ratings?.[q.key]).filter(v => v != null);
+    return vals.length ? +(vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(2) : 0;
+  });
+
+  const shortLabels = stdLabels.map(l => {
     const words = l.split(' ');
     const lines = [];
     let line = '';
     words.forEach(w => {
-      if ((line + ' ' + w).trim().length > 16) { lines.push(line.trim()); line = w; }
-      else line = (line + ' ' + w).trim();
+      if ((line+' '+w).trim().length > 16) { lines.push(line.trim()); line = w; }
+      else line = (line+' '+w).trim();
     });
     if (line) lines.push(line);
-    // Add respondent count as last line in muted style (Chart.js supports array)
     lines.push(countSuffix);
     return lines;
   });
+
+  const colors = avgs.map(v =>
+    v>=4?'#10b981': v>=3?'#1a56db': v>=2?'#f97316':'#ef4444'
+  );
 
   if (barChart) barChart.destroy();
   barChart = new Chart(ctx, {
@@ -493,76 +479,113 @@ function renderOperationalChart() {
         label: dashLang==='ar' ? 'مستوى التقييم' : 'Score Level',
         data: avgs,
         backgroundColor: colors,
-        borderRadius: 6,
-        borderSkipped: false,
+        borderRadius: 6, borderSkipped: false,
       }],
     },
     options: {
-      responsive: true,
-      maintainAspectRatio: true,
+      responsive: true, maintainAspectRatio: true,
       plugins: {
         legend: { display: false },
-        tooltip: {
-          callbacks: {
-            title: items => opLabels[items[0].dataIndex],
-            label: item => {
-              const qi = item.dataIndex;
-              const isProb = opMeta[qi].key === 'q6';
-              if (isProb) {
-                const rawAvg = (6 - item.raw).toFixed(2);
-                const interp = item.raw >= 4
-                  ? (dashLang==='ar'?'⚠️ مشاكل كثيرة':'⚠️ Many problems')
-                  : item.raw >= 3
-                  ? (dashLang==='ar'?'متوسط':'Moderate')
-                  : (dashLang==='ar'?'✓ مشاكل قليلة':'✓ Few problems');
-                return ` ${dashLang==='ar'?'متوسط التقييم الخام':'Raw avg'}: ${rawAvg}/5 — ${interp}`;
-              }
-              return ` ${dashLang==='ar'?'المتوسط':'Avg'}: ${item.raw}/5`;
-            },
-            afterLabel: item => {
-              return ` ${dashLang==='ar'?'عدد الردود':'Responses'}: ${respCount}`;
-            },
-          },
-        },
+        tooltip: { callbacks: {
+          title: items => stdLabels[items[0].dataIndex],
+          label: item => ` ${dashLang==='ar'?'المتوسط':'Avg'}: ${item.raw}/5`,
+          afterLabel: () => ` ${dashLang==='ar'?'عدد الردود':'Responses'}: ${respCount}`,
+        }},
       },
       scales: {
         y: {
           min: 0, max: 5,
-          ticks: {
-            stepSize: 1,
-            font: { size: 11 },
-            callback: v => {
-              const labels = dashLang==='ar'
-                ? {0:'',1:'ضعيف جداً',2:'ضعيف',3:'متوسط',4:'جيد',5:'ممتاز'}
-                : {0:'',1:'Very Poor',2:'Poor',3:'Average',4:'Good',5:'Excellent'};
-              return labels[v] || v;
-            },
-          },
-          grid: { color: '#f0f0f0' },
+          ticks: { stepSize:1, font:{size:11}, callback: v => {
+            const lb = dashLang==='ar'
+              ? {0:'',1:'ضعيف جداً',2:'ضعيف',3:'متوسط',4:'جيد',5:'ممتاز'}
+              : {0:'',1:'Very Poor',2:'Poor',3:'Average',4:'Good',5:'Excellent'};
+            return lb[v]||v;
+          }},
+          grid: { color:'#f0f0f0' },
         },
-        x: {
-          ticks: {
-            font: { size: 9 },
-            maxRotation: 0,
-            color: ctx2 => {
-              // Make the count line (last line of each label) lighter
-              return '#9ca3af';
-            },
-          },
-          grid: { display: false },
-        },
+        x: { ticks:{ font:{size:9}, maxRotation:0 }, grid:{display:false} },
       },
     },
   });
 
-  // Show the inversion note below the chart
+  // Hide the old note — no longer needed
   const noteEl = document.getElementById('chart-bar-note');
-  if (noteEl) {
-    noteEl.textContent = dashLang === 'ar'
-      ? '* شريط "مستوى المشاكل" مقلوب — الشريط الطويل يعني مشاكل كثيرة (الأسوأ)'
-      : '* "Problems level" bar is inverted — a taller bar means more problems (worse)';
-    noteEl.style.display = 'block';
+  if (noteEl) noteEl.style.display = 'none';
+
+  // Build print-friendly horizontal bars
+  const printBars = document.getElementById('print-bars-operational');
+  if (printBars) {
+    printBars.innerHTML = stdLabels.map((label, i) => {
+      const v = avgs[i];
+      const pct = (v / 5) * 100;
+      const color = v>=4?'#10b981': v>=3?'#1a56db': v>=2?'#f97316':'#ef4444';
+      const scLbl = dashLang==='ar'
+        ? {1:'ضعيف جداً',2:'ضعيف',3:'متوسط',4:'جيد',5:'ممتاز'}
+        : {1:'Very Poor',2:'Poor',3:'Average',4:'Good',5:'Excellent'};
+      const lbl = scLbl[Math.round(v)] || '';
+      return `<div class="print-bar-row">
+        <div class="print-bar-label">${label}</div>
+        <div class="print-bar-track">
+          <div class="print-bar-fill" style="width:${pct.toFixed(0)}%;background:${color};"></div>
+        </div>
+        <div class="print-bar-val" style="color:${color};">${v.toFixed(1)}/5 ${lbl}</div>
+      </div>`;
+    }).join('');
   }
+
+  // Render the problems chart separately
+  renderProblemsChart();
+}
+
+/* ── PROBLEMS CHART (q6) — separate reversed chart ── */
+let problemsChart = null;
+function renderProblemsChart() {
+  const t = DT[dashLang];
+  const container = document.getElementById('problems-chart-section');
+  if (!container) return;
+
+  // q6: 1=كثيرة جداً (bad), 5=لا توجد (good)
+  // For display: show raw values but label them correctly
+  const vals = filteredResponses.map(r => r.ratings?.['q6']).filter(v => v != null);
+  if (!vals.length) { container.style.display = 'none'; return; }
+  container.style.display = 'block';
+
+  const counts = {1:0, 2:0, 3:0, 4:0, 5:0};
+  vals.forEach(v => counts[v]++);
+
+  const probLabels = dashLang === 'ar'
+    ? ['1 — كثيرة جداً','2 — كثيرة','3 — متوسطة','4 — قليلة','5 — لا توجد']
+    : ['1 — Very Many','2 — Many','3 — Moderate','4 — Few','5 — None'];
+
+  const probColors = ['#ef4444','#f97316','#eab308','#22c55e','#10b981'];
+
+  const ctx2 = document.getElementById('chart-problems').getContext('2d');
+  if (problemsChart) problemsChart.destroy();
+  problemsChart = new Chart(ctx2, {
+    type: 'bar',
+    data: {
+      labels: probLabels,
+      datasets: [{
+        label: dashLang==='ar' ? 'عدد الموظفين' : 'Employees',
+        data: Object.values(counts),
+        backgroundColor: probColors,
+        borderRadius: 6, borderSkipped: false,
+      }],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: {
+          label: item => ` ${dashLang==='ar'?'عدد الموظفين':'Employees'}: ${item.raw}`,
+        }},
+      },
+      scales: {
+        y: { beginAtZero:true, ticks:{stepSize:1,font:{size:11}}, grid:{color:'#f0f0f0'} },
+        x: { ticks:{font:{size:10}}, grid:{display:false} },
+      },
+    },
+  });
 }
 
 /* ── DOUGHNUT ── */
@@ -613,6 +636,23 @@ function renderDoughnutChart() {
       },
     },
   });
+
+  // Build print-friendly usage bars
+  const printUsage = document.getElementById('print-bars-usage');
+  if (printUsage) {
+    const usageColors = {daily:'#1a56db',weekly:'#0891b2',rarely:'#10b981',little:'#9ca3af'};
+    printUsage.innerHTML = Object.entries(counts).map(([k,v]) => {
+      const pct = total ? (v/total*100).toFixed(0) : 0;
+      const w   = total ? (v/total*100).toFixed(1) : 0;
+      return `<div class="print-usage-row">
+        <div class="print-usage-label">${t.usageLabels[k]}</div>
+        <div class="print-usage-track">
+          <div class="print-usage-fill" style="width:${w}%;background:${usageColors[k]};"></div>
+        </div>
+        <div class="print-usage-val">${v} (${pct}%)</div>
+      </div>`;
+    }).join('');
+  }
 }
 
 /* ── FUTURE SECTION (q8–q11) ── */
@@ -728,9 +768,15 @@ function renderTable() {
           <div class="score-bar-track"><div class="score-bar-fill" style="width:${pct}%"></div></div>
           <span class="badge ${bc}">${avg.toFixed(1)}</span>
         </div></td>
-        <td><button class="btn-xs" onclick="showDetail('${r.id}')">
-          <i class="bi bi-eye"></i> ${t.viewBtn}
-        </button></td>
+        <td style="display:flex;gap:0.35rem;">
+          <button class="btn-xs" onclick="showDetail('${r.id}')">
+            <i class="bi bi-eye"></i> ${t.viewBtn}
+          </button>
+          <button class="btn-xs" style="color:var(--danger);border-color:#fca5a5;"
+            onclick="confirmDelete('${r.id}','${esc(r.name)}')">
+            <i class="bi bi-trash"></i>
+          </button>
+        </td>
       </tr>`;
     }).join('');
 }
@@ -912,6 +958,58 @@ function exportCSV() {
   a.href=url; a.download=`odoo_survey_${new Date().toISOString().slice(0,10)}.csv`; a.click();
   URL.revokeObjectURL(url);
   showToast(t.exportSuccess,'success');
+}
+
+/* ── DELETE RESPONSE ── */
+function confirmDelete(id, name) {
+  const t = DT[dashLang];
+  const msg = dashLang === 'ar'
+    ? `هل أنت متأكد من حذف رد "${name}"؟\nلا يمكن التراجع عن هذا الإجراء.`
+    : `Are you sure you want to delete "${name}"'s response?\nThis cannot be undone.`;
+  if (!confirm(msg)) return;
+  deleteResponse(id, name);
+}
+
+async function deleteResponse(id, name) {
+  const t = DT[dashLang];
+  try {
+    if (DASH_CONFIG.mode === 'firebase') {
+      const { initializeApp, getApps } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
+      const { getFirestore, doc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+      const firebaseConfig = {
+        apiKey: "AIzaSyAK2-UBMDtyvkPGRGXJLXIq311U4N32fVo",
+        authDomain: "employee-survey-7a907.firebaseapp.com",
+        projectId: "employee-survey-7a907",
+        storageBucket: "employee-survey-7a907.firebasestorage.app",
+        messagingSenderId: "936069019815",
+        appId: "1:936069019815:web:b63cb3a565e57f3ec4c382"
+      };
+      const app = getApps().find(a=>a.name==='dash-app') ||
+                  initializeApp(firebaseConfig, 'dash-app');
+      const db = getFirestore(app);
+      await deleteDoc(doc(db, 'survey_responses', id));
+    } else {
+      // Demo mode: delete from localStorage
+      const all = JSON.parse(localStorage.getItem('odoo_survey_responses') || '[]');
+      const updated = all.filter(r => r.id !== id);
+      localStorage.setItem('odoo_survey_responses', JSON.stringify(updated));
+    }
+    // Remove from local state and re-render
+    allResponses = allResponses.filter(r => r.id !== id);
+    filteredResponses = filteredResponses.filter(r => r.id !== id);
+    renderAll();
+    populateFilters();
+    showToast(
+      dashLang === 'ar' ? `تم حذف رد "${name}" بنجاح ✓` : `"${name}"'s response deleted ✓`,
+      'success'
+    );
+  } catch (err) {
+    console.error('Delete error:', err);
+    showToast(
+      dashLang === 'ar' ? 'حدث خطأ أثناء الحذف' : 'Error deleting response',
+      'error'
+    );
+  }
 }
 
 /* ── HELPERS ── */

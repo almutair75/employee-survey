@@ -1585,3 +1585,36 @@ body.dash-rtl .modal-body { direction: rtl; text-align: right; }
   .future-card { flex-wrap: wrap; }
   .future-card-score { min-width: auto; }
 }
+
+/* =============================================
+   PRINT — Charts as horizontal bars
+   ============================================= */
+.print-chart-bars { display: none; }
+
+@media print {
+  /* Hide canvas charts, show bar alternatives */
+  canvas { display: none !important; }
+  .print-chart-bars { display: block !important; }
+
+  .print-bar-row {
+    display: flex; align-items: center; gap: 0.5rem;
+    margin-bottom: 0.5rem; font-size: 11px;
+  }
+  .print-bar-label { min-width: 160px; font-weight: 600; color: #111; text-align: right; }
+  .print-bar-track {
+    flex: 1; height: 14px; background: #f0f0f0;
+    border-radius: 99px; overflow: hidden;
+  }
+  .print-bar-fill { height: 100%; border-radius: 99px; }
+  .print-bar-val { min-width: 48px; font-weight: 700; font-size: 11px; }
+
+  /* Usage bars for print */
+  .print-usage-row {
+    display: flex; align-items: center; gap: 0.5rem;
+    margin-bottom: 0.4rem; font-size: 11px;
+  }
+  .print-usage-label { min-width: 130px; font-weight: 600; text-align: right; }
+  .print-usage-track { flex: 1; height: 12px; background: #f0f0f0; border-radius: 99px; overflow: hidden; }
+  .print-usage-fill  { height: 100%; border-radius: 99px; }
+  .print-usage-val   { min-width: 60px; font-size: 10px; color: #6b7280; }
+}
