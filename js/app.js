@@ -3,11 +3,8 @@
    ============================================= */
 
 const CONFIG = {
-  mode: 'demo',
+  mode: 'firebase',
   firebase: {
-    apiKey: 'FIREBASE_API_KEY_HERE',
-    authDomain: 'FIREBASE_AUTH_DOMAIN_HERE',
-    projectId: 'FIREBASE_PROJECT_ID_HERE',
     collection: 'survey_responses',
   },
   supabase: {
@@ -244,6 +241,26 @@ const Storage = {
       all.push(data);
       localStorage.setItem('odoo_survey_responses', JSON.stringify(all));
       return { success: true };
+    }
+    if (CONFIG.mode === 'firebase') {
+      try {
+        const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
+        const { getFirestore, collection, addDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+        const app = initializeApp({
+          apiKey: "AIzaSyAK2-UBMDtyvkPGRGXJLXIq311U4N32fVo",
+          authDomain: "employee-survey-7a907.firebaseapp.com",
+          projectId: "employee-survey-7a907",
+          storageBucket: "employee-survey-7a907.firebasestorage.app",
+          messagingSenderId: "936069019815",
+          appId: "1:936069019815:web:b63cb3a565e57f3ec4c382"
+        }, 'survey-app');
+        const db = getFirestore(app);
+        await addDoc(collection(db, CONFIG.firebase.collection), data);
+        return { success: true };
+      } catch (err) {
+        console.error('Firebase error:', err);
+        return { success: false, error: err.message };
+      }
     }
     return { success: false, error: 'Not configured' };
   },

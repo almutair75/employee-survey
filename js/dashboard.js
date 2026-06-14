@@ -2,7 +2,7 @@
    ODOO SURVEY — dashboard.js v2
    ============================================= */
 
-const DASH_CONFIG = { demoPassword: 'Majed@2026', mode: 'demo' };
+const DASH_CONFIG = { demoPassword: 'Majed@2026', mode: 'firebase' };
 
 /* ── Question labels per language ── */
 const Q_META = [
@@ -311,6 +311,29 @@ function setTxt(id, v) { const e = document.getElementById(id); if (e) e.textCon
 async function loadData() {
   if (DASH_CONFIG.mode === 'demo') {
     return JSON.parse(localStorage.getItem('odoo_survey_responses') || '[]');
+  }
+  if (DASH_CONFIG.mode === 'firebase') {
+    try {
+      const { initializeApp, getApps } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
+      const { getFirestore, collection, getDocs, query, orderBy } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+      const firebaseConfig = {
+        apiKey: "AIzaSyAK2-UBMDtyvkPGRGXJLXIq311U4N32fVo",
+        authDomain: "employee-survey-7a907.firebaseapp.com",
+        projectId: "employee-survey-7a907",
+        storageBucket: "employee-survey-7a907.firebasestorage.app",
+        messagingSenderId: "936069019815",
+        appId: "1:936069019815:web:b63cb3a565e57f3ec4c382"
+      };
+      const app = getApps().find(a=>a.name==='dash-app') ||
+                  initializeApp(firebaseConfig, 'dash-app');
+      const db = getFirestore(app);
+      const q = query(collection(db, 'survey_responses'), orderBy('timestamp', 'desc'));
+      const snap = await getDocs(q);
+      return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch (err) {
+      console.error('Firebase load error:', err);
+      return [];
+    }
   }
   return [];
 }
