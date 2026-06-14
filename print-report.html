@@ -384,7 +384,12 @@
 <!-- DOCUMENT -->
 <div class="doc-wrap">
   <div id="emp-selector-wrap"></div>
-  <div id="doc"></div>
+  <div id="doc">
+    <div class="empty" style="background:white;border-radius:12px;">
+      <i class="bi bi-hourglass-split" style="font-size:2rem;display:block;margin-bottom:0.75rem;opacity:0.4;"></i>
+      <p id="loading-txt">جاري تحميل البيانات من قاعدة البيانات...</p>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -500,7 +505,7 @@ addEventListener('DOMContentLoaded', () => {
   // Apply direction
   document.documentElement.setAttribute('dir', L.dir);
   document.documentElement.setAttribute('lang', lang);
-  document.body.className = lang === 'ar' ? 'lang-ar' : 'lang-en';
+  document.body.style.fontFamily = lang === 'ar' ? "'Cairo', sans-serif" : "'Inter', sans-serif";
 
   // Update static UI text
   document.getElementById('btn-print-txt').textContent = L.ui.printBtn;
@@ -513,22 +518,54 @@ addEventListener('DOMContentLoaded', () => {
   document.getElementById('lbl-f-to').textContent = L.ui.lblTo;
   document.getElementById('lbl-f-rating').textContent = L.ui.lblRating;
 
-  // Load data
-  all = JSON.parse(localStorage.getItem('odoo_survey_responses') || '[]');
+  // Loading message in correct language
+  const loadTxt = document.getElementById('loading-txt');
+  if (loadTxt) loadTxt.textContent = lang === 'ar'
+    ? 'جاري تحميل البيانات من قاعدة البيانات...'
+    : 'Loading data from database...';
 
-  // Populate dept filter
-  const ds = document.getElementById('f-dept');
-  [...new Set(all.map(r=>r.department).filter(Boolean))].sort().forEach(d => {
-    const o = document.createElement('option');
-    o.value = d; o.textContent = d; ds.appendChild(o);
+  // Load data from Firebase
+  loadData().then(data => {
+    all = data;
+
+    // Populate dept filter
+    const ds = document.getElementById('f-dept');
+    [...new Set(all.map(r=>r.department).filter(Boolean))].sort().forEach(d => {
+      const o = document.createElement('option');
+      o.value = d; o.textContent = d; ds.appendChild(o);
+    });
+
+    if (p.get('dept'))     { ds.value = p.get('dept'); }
+    if (p.get('dateFrom')) { document.getElementById('f-from').value = p.get('dateFrom'); }
+    if (p.get('dateTo'))   { document.getElementById('f-to').value   = p.get('dateTo');   }
+
+    applyFilters();
   });
-
-  if (p.get('dept'))     { ds.value = p.get('dept'); }
-  if (p.get('dateFrom')) { document.getElementById('f-from').value = p.get('dateFrom'); }
-  if (p.get('dateTo'))   { document.getElementById('f-to').value   = p.get('dateTo');   }
-
-  applyFilters();
 });
+
+async function loadData() {
+  try {
+    const { initializeApp, getApps } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
+    const { getFirestore, collection, getDocs, query, orderBy } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    const cfg = {
+      apiKey: "AIzaSyAK2-UBMDtyvkPGRGXJLXIq311U4N32fVo",
+      authDomain: "employee-survey-7a907.firebaseapp.com",
+      projectId: "employee-survey-7a907",
+      storageBucket: "employee-survey-7a907.firebasestorage.app",
+      messagingSenderId: "936069019815",
+      appId: "1:936069019815:web:b63cb3a565e57f3ec4c382"
+    };
+    const app = getApps().find(a=>a.name==='rpt') || initializeApp(cfg,'rpt');
+    const db  = getFirestore(app);
+    const q   = query(collection(db,'survey_responses'), orderBy('timestamp','desc'));
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch(e) {
+    console.error('Firebase load error:', e);
+    // Fallback to localStorage
+    return JSON.parse(localStorage.getItem('odoo_survey_responses') || '[]');
+  }
+}
 
 function applyFilters() {
   const dept   = document.getElementById('f-dept').value;
@@ -555,7 +592,9 @@ function toggleAll() {
   else selected = new Set(filtered.map(r => r.id));
   document.querySelectorAll('.emp-cb').forEach(cb => cb.checked = selected.has(cb.dataset.id));
   document.getElementById('lbl-toggle-all').textContent =
-    selected.size === filtered.length ? 'إلغاء تحديد الكل' : 'تحديد الكل';
+    selected.size === filtered.length
+      ? (lang==='ar' ? 'إلغاء تحديد الكل' : 'Deselect All')
+      : L.ui.selectAll;
   renderDoc(); updateBadge();
 }
 
