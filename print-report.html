@@ -573,9 +573,11 @@ function applyFilters() {
 
   filtered = all.filter(r => {
     if (dept && r.department !== dept) return false;
-    if (from && r.timestamp.slice(0,10) < from) return false;
-    if (to   && r.timestamp.slice(0,10) > to)   return false;
-    if (minR && (r.avgRating||0) < minR)         return false;
+    // Normalize timestamp to YYYY-MM-DD for comparison
+    const rDate = r.timestamp ? r.timestamp.slice(0,10) : '';
+    if (from && rDate < from) return false;
+    if (to   && rDate > to)   return false;
+    if (minR && (r.avgRating||0) < minR) return false;
     return true;
   });
 

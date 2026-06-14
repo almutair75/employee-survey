@@ -924,12 +924,9 @@ function printFullReport(id) {
 /* ── PRINT ALL REPORT ── */
 function openPrintReport() {
   const dept = document.getElementById('filter-dept').value;
-  const dateFrom = document.getElementById('filter-date-from').value;
-  const dateTo = document.getElementById('filter-date-to').value;
   const params = new URLSearchParams({ lang: dashLang });
   if (dept) params.set('dept', dept);
-  if (dateFrom) params.set('dateFrom', dateFrom);
-  if (dateTo) params.set('dateTo', dateTo);
+  // Note: dates not passed to avoid format mismatch — user can filter in print page
   window.open('print-report.html?' + params.toString(), '_blank');
 }
 
