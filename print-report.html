@@ -1,9 +1,11 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>التقرير الشامل — استبيان Odoo</title>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
@@ -545,22 +547,6 @@ addEventListener('DOMContentLoaded', () => {
 
 async function loadData() {
   try {
-    // Use compat version which works without module bundler
-    if (!window.firebase) {
-      await new Promise((resolve, reject) => {
-        const s1 = document.createElement('script');
-        s1.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js';
-        s1.onload = () => {
-          const s2 = document.createElement('script');
-          s2.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js';
-          s2.onload = resolve;
-          s2.onerror = reject;
-          document.head.appendChild(s2);
-        };
-        s1.onerror = reject;
-        document.head.appendChild(s1);
-      });
-    }
     const cfg = {
       apiKey: "AIzaSyAK2-UBMDtyvkPGRGXJLXIq311U4N32fVo",
       authDomain: "employee-survey-7a907.firebaseapp.com",
