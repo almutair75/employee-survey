@@ -617,3 +617,18 @@ function showToast(msg, type='') {
   clearTimeout(toastTimeout);
   toastTimeout = setTimeout(()=>t.className='toast', 3500);
 }
+
+/* ── PERIOD BANNER ─────────────────── */
+function fillPeriodBanner() {
+  const open  = new Date(CONFIG.survey.dateOpen);
+  const close = new Date(CONFIG.survey.dateClose);
+  const fmtAr = d => d.toLocaleString('ar-SA', {
+    day:'2-digit', month:'long', year:'numeric',
+    hour:'2-digit', minute:'2-digit'
+  });
+  const el = (id, txt) => { const e = document.getElementById(id); if(e) e.textContent = txt; };
+  el('period-open',  fmtAr(open));
+  el('period-close', fmtAr(close));
+  el('period-round', CONFIG.survey.roundName);
+}
+fillPeriodBanner();

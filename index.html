@@ -15,6 +15,40 @@
     <div class="brand-logo"><i class="bi bi-bar-chart-line"></i></div>
     <div class="lang-select-title-ar">استبيان تقييم استخدام نظام Odoo</div>
     <div class="lang-select-title-en">Odoo Usage Evaluation Survey</div>
+
+    <!-- فترة الاستبيان — تُملأ تلقائياً من CONFIG -->
+    <div id="survey-period-banner" style="
+      margin: 1rem 0;
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      font-family: 'Cairo', sans-serif;
+    ">
+      <div style="display:flex;align-items:center;justify-content:center;gap:0.5rem;
+        font-size:0.78rem;font-weight:700;color:#059669;margin-bottom:0.5rem;">
+        <i class="bi bi-clock-history"></i>
+        <span id="period-label-ar">فترة الاستبيان</span>
+        <span style="color:#9ca3af;font-weight:400;">/ Survey Period</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;text-align:center;">
+        <div style="background:white;border-radius:8px;padding:0.5rem;border:1px solid #d1fae5;">
+          <div style="font-size:0.65rem;color:#9ca3af;margin-bottom:0.2rem;">
+            يفتح / Opens
+          </div>
+          <div id="period-open" style="font-size:0.82rem;font-weight:700;color:#059669;"></div>
+        </div>
+        <div style="background:white;border-radius:8px;padding:0.5rem;border:1px solid #fecaca;">
+          <div style="font-size:0.65rem;color:#9ca3af;margin-bottom:0.2rem;">
+            يُغلق / Closes
+          </div>
+          <div id="period-close" style="font-size:0.82rem;font-weight:700;color:#dc2626;"></div>
+        </div>
+      </div>
+      <div id="period-round" style="text-align:center;font-size:0.72rem;color:#6b7280;
+        margin-top:0.5rem;font-weight:600;"></div>
+    </div>
+
     <div class="lang-select-subtitle">اختر لغتك / Choose your language</div>
     <div class="lang-buttons">
       <button class="lang-btn lang-ar-btn" onclick="selectLanguage('ar')">

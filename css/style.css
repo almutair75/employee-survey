@@ -253,6 +253,10 @@ p { color: var(--text-secondary); }
   background: var(--bg-white);
   border-bottom: 1px solid var(--border);
   padding: 0.75rem 1.5rem;
+  position: sticky;
+  top: 61px;
+  z-index: 99;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
 }
 
 .progress-inner {
@@ -1486,6 +1490,13 @@ body.dash-rtl .modal-body { direction: rtl; text-align: right; }
   .dash-card { box-shadow: none !important; border: 1px solid #ddd !important; break-inside: avoid; }
   .kpi-grid { grid-template-columns: repeat(4,1fr) !important; }
   body { background: white !important; }
+
+  /* Hide canvas charts, show print bars instead */
+  canvas { display: none !important; }
+  .print-chart-bars { display: block !important; }
+
+  /* Charts grid becomes single column for print */
+  .charts-grid { grid-template-columns: 1fr !important; }
 
   /* Print note page */
   .print-actions { display: none !important; }
