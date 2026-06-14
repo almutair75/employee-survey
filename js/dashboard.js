@@ -1043,7 +1043,6 @@ function seedDemoData() {
 
 /* ── AUTO INIT ── */
 document.addEventListener('DOMContentLoaded',()=>{
-  if(!localStorage.getItem('odoo_survey_responses')) seedDemoData();
   if(sessionStorage.getItem('dash_auth')){
     document.getElementById('dashboard-login').style.display='none';
     document.getElementById('dashboard-app').classList.add('active');
