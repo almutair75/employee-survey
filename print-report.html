@@ -365,13 +365,13 @@
 
 <!-- FILTER BAR -->
 <div class="filterbar screen-only">
-  <label>القسم:</label>
+  <label id="lbl-f-dept">القسم:</label>
   <select id="f-dept" onchange="applyFilters()"><option value="">كل الأقسام</option></select>
-  <label>من:</label>
+  <label id="lbl-f-from">من:</label>
   <input type="date" id="f-from" onchange="applyFilters()" />
-  <label>إلى:</label>
+  <label id="lbl-f-to">إلى:</label>
   <input type="date" id="f-to" onchange="applyFilters()" />
-  <label>أدنى تقييم:</label>
+  <label id="lbl-f-rating">أدنى تقييم:</label>
   <select id="f-rating" onchange="applyFilters()">
     <option value="">الكل</option>
     <option value="4">4+</option>
@@ -388,43 +388,132 @@
 </div>
 
 <script>
+/* ══ BILINGUAL LABELS ══ */
+const LABELS = {
+  ar: {
+    qLabels: [
+      'سهولة استخدام نظام Odoo','وضوح الشاشات والقوائم','سرعة النظام أثناء العمل',
+      'دقة البيانات والمعلومات','سهولة الوصول للطلبات/المنتجات',
+      'توافق النظام مع طريقة العمل','مستوى المشاكل أو الأخطاء',
+      'الرضا العام عن نظام Odoo','مدى الإلمام والمعرفة بالنظام',
+      'هل النظام ناجح في الشركة؟','هل النظام يحتاج تطوير؟','هل تري ضرورة البحث عن بديل؟',
+    ],
+    scale: {
+      standard:    {1:'ضعيف جداً',2:'ضعيف',3:'متوسط',4:'جيد',5:'ممتاز'},
+      problem:     {1:'كثيرة جداً',2:'كثيرة',3:'متوسطة',4:'قليلة',5:'لا توجد'},
+      knowledge:   {1:'مبتدئ',2:'أساسي',3:'متوسط',4:'جيد',5:'خبير'},
+      success:     {1:'فاشل',2:'ضعيف',3:'مقبول',4:'جيد',5:'ناجح جداً'},
+      development: {1:'لا يحتاج',2:'بسيط',3:'متوسط',4:'كبير',5:'جذري'},
+      alternative: {1:'لا داعي',2:'ربما',3:'محايد',4:'يُنصح',5:'ضرورة قصوى'},
+    },
+    usage: { daily:'يومياً', weekly:'عدة مرات/أسبوع', rarely:'نادراً', little:'لا يستخدم كثيراً' },
+    ui: {
+      reportTitle: 'التقرير الشامل لاستبيان تقييم نظام Odoo',
+      company: 'مؤسسة تسويق الهدايا العالمية — Gift Mart International',
+      participated: 'موظف شارك', avgSat: 'متوسط الرضا / 5', deptPart: 'قسم مشارك',
+      period: 'الفترة', printedOn: 'تاريخ الطباعة', allPeriods: 'جميع الفترات',
+      from: 'من', until: 'حتى',
+      usageDist: 'توزيع مستوى الاستخدام',
+      index: 'فهرس الموظفين',
+      opRating: 'التقييم التشغيلي',
+      futureDiv: 'رأي الموظف في مستقبل النظام',
+      comments: 'الملاحظات والتعليقات',
+      problems: 'المشاكل المذكورة', suggestions: 'الاقتراحات',
+      empOf: 'موظف {i} من {total}',
+      footer: 'مؤسسة تسويق الهدايا العالمية — Odoo Survey',
+      printBtn: 'طباعة / PDF', closeBtn: 'إغلاق',
+      selectEmps: 'اختر الموظفين للطباعة',
+      noData: 'لا توجد بيانات تطابق الفلاتر.',
+      noSelected: 'لم تحدد أي موظف للطباعة.',
+      allDepts: 'كل الأقسام', allRatings: 'الكل', selectAll: 'تحديد الكل',
+      lblDept: 'القسم:', lblFrom: 'من:', lblTo: 'إلى:', lblRating: 'أدنى تقييم:',
+      selBadge: '{n} محدد للطباعة',
+    },
+    dir: 'rtl', locale: 'ar-SA',
+  },
+  en: {
+    qLabels: [
+      'Ease of use of Odoo','Clarity of screens and menus','System speed during work',
+      'Accuracy of data and information','Ease of accessing orders/products',
+      'Alignment with daily workflow','Level of problems or errors',
+      'Overall satisfaction with Odoo','Familiarity and knowledge of Odoo',
+      'Is Odoo successful in the company?','Does the system need development?',
+      'Need to look for an alternative system?',
+    ],
+    scale: {
+      standard:    {1:'Very Poor',2:'Poor',3:'Average',4:'Good',5:'Excellent'},
+      problem:     {1:'Very Many',2:'Many',3:'Moderate',4:'Few',5:'None'},
+      knowledge:   {1:'Beginner',2:'Basic',3:'Intermediate',4:'Good',5:'Expert'},
+      success:     {1:'Failure',2:'Poor',3:'Acceptable',4:'Good',5:'Very Successful'},
+      development: {1:'Not Needed',2:'Minor',3:'Moderate',4:'Major',5:'Radical'},
+      alternative: {1:'Not Needed',2:'Maybe',3:'Neutral',4:'Recommended',5:'Critical'},
+    },
+    usage: { daily:'Daily', weekly:'Several times/week', rarely:'Rarely', little:"Doesn't use much" },
+    ui: {
+      reportTitle: 'Comprehensive Odoo Evaluation Survey Report',
+      company: 'Gift Mart International — مؤسسة تسويق الهدايا العالمية',
+      participated: 'employees participated', avgSat: 'Avg Satisfaction / 5', deptPart: 'departments',
+      period: 'Period', printedOn: 'Printed on', allPeriods: 'All periods',
+      from: 'From', until: 'Until',
+      usageDist: 'Usage Frequency Distribution',
+      index: 'Employee Index',
+      opRating: 'Operational Rating',
+      futureDiv: "Employee's Opinion on System Future",
+      comments: 'Comments & Feedback',
+      problems: 'Reported Problems', suggestions: 'Suggestions',
+      empOf: 'Employee {i} of {total}',
+      footer: 'Gift Mart International — Odoo Survey',
+      printBtn: 'Print / PDF', closeBtn: 'Close',
+      selectEmps: 'Select employees to print',
+      noData: 'No data matches the selected filters.',
+      noSelected: 'No employees selected.',
+      allDepts: 'All Departments', allRatings: 'Any', selectAll: 'Select All',
+      lblDept: 'Department:', lblFrom: 'From:', lblTo: 'To:', lblRating: 'Min Rating:',
+      selBadge: '{n} selected',
+    },
+    dir: 'ltr', locale: 'en-GB',
+  },
+};
+
 /* ══ META ══ */
-const Q = [
-  {key:'q0',type:'standard',  label:'سهولة استخدام نظام Odoo'},
-  {key:'q1',type:'standard',  label:'وضوح الشاشات والقوائم'},
-  {key:'q2',type:'standard',  label:'سرعة النظام أثناء العمل'},
-  {key:'q3',type:'standard',  label:'دقة البيانات والمعلومات'},
-  {key:'q4',type:'standard',  label:'سهولة الوصول للطلبات/المنتجات'},
-  {key:'q5',type:'standard',  label:'توافق النظام مع طريقة العمل'},
-  {key:'q6',type:'problem',   label:'مستوى المشاكل أو الأخطاء'},
-  {key:'q7',type:'standard',  label:'الرضا العام عن نظام Odoo'},
-  {key:'q8',type:'knowledge', label:'مدى الإلمام والمعرفة بالنظام'},
-  {key:'q9',type:'success',   label:'هل النظام ناجح في الشركة؟'},
-  {key:'q10',type:'development',label:'هل النظام يحتاج تطوير؟'},
-  {key:'q11',type:'alternative',label:'هل تري ضرورة البحث عن بديل؟'},
+const Q_TYPES = [
+  'standard','standard','standard','standard','standard','standard',
+  'problem','standard','knowledge','success','development','alternative'
 ];
 
-const SCALE = {
-  standard:    {1:'ضعيف جداً',2:'ضعيف',3:'متوسط',4:'جيد',5:'ممتاز'},
-  problem:     {1:'كثيرة جداً',2:'كثيرة',3:'متوسطة',4:'قليلة',5:'لا توجد'},
-  knowledge:   {1:'مبتدئ',2:'أساسي',3:'متوسط',4:'جيد',5:'خبير'},
-  success:     {1:'فاشل',2:'ضعيف',3:'مقبول',4:'جيد',5:'ناجح جداً'},
-  development: {1:'لا يحتاج',2:'بسيط',3:'متوسط',4:'كبير',5:'جذري'},
-  alternative: {1:'لا داعي',2:'ربما',3:'محايد',4:'يُنصح',5:'ضرورة قصوى'},
-};
-
-const USAGE_LBL = {
-  daily:'يومياً', weekly:'عدة مرات/أسبوع', rarely:'نادراً', little:'لا يستخدم كثيراً'
-};
 const USAGE_COLORS = {
   daily:'#1a56db', weekly:'#0891b2', rarely:'#10b981', little:'#9ca3af'
 };
 
 /* ══ STATE ══ */
 let all = [], filtered = [], selected = new Set();
+let lang = 'ar';  // set from URL param
+let L = LABELS.ar; // active labels
 
 /* ══ BOOT ══ */
 addEventListener('DOMContentLoaded', () => {
+  // Read lang from URL
+  const p = new URLSearchParams(location.search);
+  lang = p.get('lang') === 'en' ? 'en' : 'ar';
+  L = LABELS[lang];
+
+  // Apply direction
+  document.documentElement.setAttribute('dir', L.dir);
+  document.documentElement.setAttribute('lang', lang);
+  document.body.className = lang === 'ar' ? 'lang-ar' : 'lang-en';
+
+  // Update static UI text
+  document.getElementById('btn-print-txt').textContent = L.ui.printBtn;
+  document.getElementById('btn-close-txt').textContent = L.ui.closeBtn;
+  document.getElementById('lbl-toggle-all').textContent = L.ui.selectAll;
+  document.getElementById('f-dept').options[0].textContent = L.ui.allDepts;
+  document.getElementById('f-rating').options[0].textContent = L.ui.allRatings;
+  document.getElementById('lbl-f-dept').textContent = L.ui.lblDept;
+  document.getElementById('lbl-f-from').textContent = L.ui.lblFrom;
+  document.getElementById('lbl-f-to').textContent = L.ui.lblTo;
+  document.getElementById('lbl-f-rating').textContent = L.ui.lblRating;
+
+  // Load data
   all = JSON.parse(localStorage.getItem('odoo_survey_responses') || '[]');
 
   // Populate dept filter
@@ -434,8 +523,6 @@ addEventListener('DOMContentLoaded', () => {
     o.value = d; o.textContent = d; ds.appendChild(o);
   });
 
-  // URL params
-  const p = new URLSearchParams(location.search);
   if (p.get('dept'))     { ds.value = p.get('dept'); }
   if (p.get('dateFrom')) { document.getElementById('f-from').value = p.get('dateFrom'); }
   if (p.get('dateTo'))   { document.getElementById('f-to').value   = p.get('dateTo');   }
@@ -478,7 +565,8 @@ function toggleEmp(id, v) {
 }
 
 function updateBadge() {
-  document.getElementById('sel-badge').textContent = `${selected.size} موظف محدد للطباعة`;
+  document.getElementById('sel-badge').textContent =
+    L.ui.selBadge.replace('{n}', selected.size);
 }
 
 /* ══ EMPLOYEE SELECTOR ══ */
@@ -487,7 +575,7 @@ function renderSelector() {
   if (!filtered.length) { wrap.innerHTML = ''; return; }
   wrap.innerHTML = `
     <div class="emp-selector screen-only">
-      <div class="emp-selector-title"><i class="bi bi-people"></i> اختر الموظفين للطباعة</div>
+      <div class="emp-selector-title"><i class="bi bi-people"></i> ${L.ui.selectEmps}</div>
       <div class="emp-grid">
         ${filtered.map(r => `
           <label class="emp-check-label">
@@ -508,18 +596,21 @@ function renderDoc() {
   const doc = document.getElementById('doc');
 
   if (!data.length) {
-    doc.innerHTML = `<div class="empty"><i class="bi bi-person-x"></i><p>لم تحدد أي موظف.</p></div>`;
+    doc.innerHTML = `<div class="empty"><i class="bi bi-person-x"></i><p>${L.ui.noSelected}</p></div>`;
     return;
   }
 
   const avgAll = data.reduce((a,r)=>a+(r.avgRating||0),0) / data.length;
   const depts  = new Set(data.map(r=>r.department));
-  const date   = new Date().toLocaleDateString('ar-SA',{day:'2-digit',month:'long',year:'numeric'});
+  const date   = new Date().toLocaleDateString(L.locale,{day:'2-digit',month:'long',year:'numeric'});
   const from   = document.getElementById('f-from').value;
   const to     = document.getElementById('f-to').value;
-  const period = from&&to ? `${from} — ${to}` : from ? `من ${from}` : to ? `حتى ${to}` : 'جميع الفترات';
+  const period = from&&to
+    ? `${from} — ${to}`
+    : from ? `${L.ui.from} ${from}`
+    : to   ? `${L.ui.until} ${to}`
+    : L.ui.allPeriods;
 
-  // Usage counts
   const uc = {daily:0,weekly:0,rarely:0,little:0};
   data.forEach(r => { if(r.usage&&uc[r.usage]!==undefined) uc[r.usage]++; });
   const total = data.length;
@@ -537,40 +628,41 @@ function buildCover(count, avg, deptCount, date, period, uc, total) {
   const usageBars = Object.entries(uc).map(([k,v]) => {
     const pct = total ? Math.round((v/total)*100) : 0;
     const w   = total ? (v/total*100).toFixed(1)  : 0;
+    const empWord = lang==='ar' ? 'موظف' : 'emp.';
     return `<div class="usage-bar-row">
-      <div class="usage-bar-label">${USAGE_LBL[k]}</div>
+      <div class="usage-bar-label">${L.usage[k]}</div>
       <div class="usage-bar-track">
         <div class="usage-bar-fill" style="width:${w}%;background:${USAGE_COLORS[k]};"></div>
       </div>
-      <div class="usage-bar-count">${v} موظف &nbsp;${pct}%</div>
+      <div class="usage-bar-count">${v} ${empWord} &nbsp;${pct}%</div>
     </div>`;
   }).join('');
 
   return `<div class="cover">
     <div class="cover-icon"><i class="bi bi-bar-chart-line"></i></div>
-    <h1>التقرير الشامل لاستبيان تقييم نظام Odoo</h1>
-    <h2>مؤسسة تسويق الهدايا العالمية — Gift Mart International</h2>
+    <h1>${L.ui.reportTitle}</h1>
+    <h2>${L.ui.company}</h2>
     <div class="cover-kpis">
       <div class="cover-kpi">
         <div class="cover-kpi-num">${count}</div>
-        <div class="cover-kpi-lbl">موظف شارك</div>
+        <div class="cover-kpi-lbl">${L.ui.participated}</div>
       </div>
       <div class="cover-kpi">
         <div class="cover-kpi-num" style="color:${avgColor};">${avg.toFixed(2)}</div>
-        <div class="cover-kpi-lbl">متوسط الرضا / 5</div>
+        <div class="cover-kpi-lbl">${L.ui.avgSat}</div>
       </div>
       <div class="cover-kpi">
         <div class="cover-kpi-num">${deptCount}</div>
-        <div class="cover-kpi-lbl">قسم مشارك</div>
+        <div class="cover-kpi-lbl">${L.ui.deptPart}</div>
       </div>
     </div>
     <div class="usage-bars">
-      <div class="usage-bars-title">توزيع مستوى الاستخدام</div>
+      <div class="usage-bars-title">${L.ui.usageDist}</div>
       ${usageBars}
     </div>
     <div class="cover-meta">
-      <div>الفترة: ${period}</div>
-      <div>تاريخ الطباعة: ${date}</div>
+      <div>${L.ui.period}: ${period}</div>
+      <div>${L.ui.printedOn}: ${date}</div>
       <div>Odoo Usage Evaluation Survey</div>
     </div>
   </div>`;
@@ -590,7 +682,7 @@ function buildTOC(data) {
     </div>`;
   }).join('');
   return `<div class="toc">
-    <div class="toc-heading"><i class="bi bi-list-ol"></i> فهرس الموظفين</div>
+    <div class="toc-heading"><i class="bi bi-list-ol"></i> ${L.ui.index}</div>
     ${rows}
   </div>`;
 }
@@ -599,24 +691,33 @@ function buildTOC(data) {
 function buildEmpCard(r, idx, total) {
   const avg      = r.avgRating || 0;
   const avgColor = avg>=4?'#059669':avg>=3?'#1a56db':avg>=2?'#d97706':'#dc2626';
-  const date     = new Date(r.timestamp).toLocaleDateString('ar-SA',{day:'2-digit',month:'long',year:'numeric'});
+  const date     = new Date(r.timestamp).toLocaleDateString(L.locale,{day:'2-digit',month:'long',year:'numeric'});
   const initials = (r.name||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
-  const usageTxt = USAGE_LBL[r.usage] || r.usage || '—';
+  const usageTxt = L.usage[r.usage] || r.usage || '—';
+
+  const lblName = lang==='ar'?'الاسم':'Name';
+  const lblDept = lang==='ar'?'القسم':'Department';
+  const lblDate = lang==='ar'?'تاريخ الإرسال':'Submission Date';
 
   // Operational questions (q0–q7)
-  const opRows = Q.slice(0,8).map((q,i) => progRow(q, i, r)).join('');
+  const opRows = L.qLabels.slice(0,8).map((label,i) => {
+    const qKey = 'q'+i;
+    return progRow({key:qKey, type:Q_TYPES[i], label}, i, r);
+  }).join('');
 
   // Strategic questions (q8–q11)
-  const stRows = Q.slice(8).map((q,i) => progRow(q, i+8, r)).join('');
+  const stRows = L.qLabels.slice(8).map((label,i) => {
+    const qKey = 'q'+(i+8);
+    return progRow({key:qKey, type:Q_TYPES[i+8], label}, i+8, r);
+  }).join('');
 
-  // Text responses — only problems (no suggestions field in old data)
   let textHtml = '';
   if (r.problems || r.suggestions) {
     const boxes = [];
-    if (r.problems)    boxes.push({lbl:'المشاكل المذكورة',   val:r.problems,    color:'#dc2626'});
-    if (r.suggestions) boxes.push({lbl:'الاقتراحات',          val:r.suggestions, color:'#1a56db'});
+    if (r.problems)    boxes.push({lbl:L.ui.problems,    val:r.problems,    color:'#dc2626'});
+    if (r.suggestions) boxes.push({lbl:L.ui.suggestions, val:r.suggestions, color:'#1a56db'});
     textHtml = `<div class="text-section">
-      <div class="text-title">الملاحظات والتعليقات</div>
+      <div class="text-title">${L.ui.comments}</div>
       ${boxes.map(b=>`<div class="text-box" style="border-inline-start-color:${b.color};">
         <div class="text-box-lbl" style="color:${b.color};">${b.lbl}</div>
         <div class="text-box-val">${esc(b.val)}</div>
@@ -638,26 +739,23 @@ function buildEmpCard(r, idx, total) {
     </div>
     <div class="emp-card-body">
       <div class="emp-meta">
-        <div class="meta-item"><div class="meta-lbl">الاسم</div><div class="meta-val">${esc(r.name)}</div></div>
-        <div class="meta-item"><div class="meta-lbl">القسم</div><div class="meta-val">${esc(r.department)}</div></div>
-        <div class="meta-item"><div class="meta-lbl">تاريخ الإرسال</div><div class="meta-val">${date}</div></div>
+        <div class="meta-item"><div class="meta-lbl">${lblName}</div><div class="meta-val">${esc(r.name)}</div></div>
+        <div class="meta-item"><div class="meta-lbl">${lblDept}</div><div class="meta-val">${esc(r.department)}</div></div>
+        <div class="meta-item"><div class="meta-lbl">${lblDate}</div><div class="meta-val">${date}</div></div>
       </div>
-
-      <div class="ratings-title">التقييم التشغيلي</div>
+      <div class="ratings-title">${L.ui.opRating}</div>
       ${opRows}
-
       <div class="section-divider">
         <div class="section-divider-line"></div>
-        <div class="section-divider-lbl">رأي الموظف في مستقبل النظام</div>
+        <div class="section-divider-lbl">${L.ui.futureDiv}</div>
         <div class="section-divider-line"></div>
       </div>
       ${stRows}
-
       ${textHtml}
     </div>
     <div class="emp-card-footer">
-      <span>مؤسسة تسويق الهدايا العالمية — Odoo Survey</span>
-      <span>موظف ${idx} من ${total}</span>
+      <span>${L.ui.footer}</span>
+      <span>${L.ui.empOf.replace('{i}',idx).replace('{total}',total)}</span>
     </div>
   </div>`;
 }
@@ -666,26 +764,19 @@ function buildEmpCard(r, idx, total) {
 function progRow(q, globalIdx, r) {
   const val = r.ratings?.[q.key];
   if (!val) return '';
-
   const pct   = (val / 5) * 100;
-  const scale = SCALE[q.type] || SCALE.standard;
+  const scale = L.scale[q.type] || L.scale.standard;
   const lbl   = scale[val] || '';
-
-  // Color logic
   let color;
   if (q.key === 'q6') {
-    // Problem: low raw = many problems = bad
     color = val<=2?'#ef4444': val<=3?'#f97316': val<=4?'#eab308':'#10b981';
   } else if (q.key === 'q10' || q.key === 'q11') {
-    // Higher = worse
     color = val>=4?'#ef4444': val>=3?'#f97316': val>=2?'#eab308':'#10b981';
   } else {
     color = val>=4?'#10b981': val>=3?'#1a56db': val>=2?'#f97316':'#ef4444';
   }
-
   const noteKey = 'note_' + q.key;
   const noteVal = r.notes?.[noteKey];
-
   return `<div>
     <div class="prog-row">
       <div class="prog-num">${globalIdx+1}</div>
@@ -696,7 +787,7 @@ function progRow(q, globalIdx, r) {
       <div class="prog-pct" style="color:${color};">${pct.toFixed(0)}%</div>
       <div class="prog-score-badge" style="color:${color};background:${color}18;">${val}/5 ${lbl}</div>
     </div>
-    ${noteVal ? `<div style="padding-right:26px;">
+    ${noteVal ? `<div style="padding-${lang==='ar'?'right':'left'}:26px;">
       <div class="prog-note">📝 ${esc(noteVal)}</div>
     </div>` : ''}
   </div>`;
