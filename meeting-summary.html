@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ملخص الاجتماع — استبيان Odoo</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap');
+    :root {
+      --primary:#1a56db; --accent:#0891b2; --success:#059669;
+      --warning:#d97706; --danger:#dc2626; --purple:#7c3aed;
+      --text:#111827; --muted:#6b7280; --border:#e5e7eb; --bg:#f3f4f6;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Cairo',sans-serif;color:var(--text);background:#e8eaf0;direction:rtl;font-size:12px;}
+
+    /* Topbar */
+    .topbar{background:white;border-bottom:1px solid var(--border);padding:.6rem 1.25rem;
+      display:flex;align-items:center;justify-content:space-between;
+      position:sticky;top:0;z-index:100;box-shadow:0 2px 6px rgba(0,0,0,.07);}
+    .topbar-brand{display:flex;align-items:center;gap:.6rem;}
+    .topbar-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--primary),var(--accent));
+      border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;font-size:.9rem;}
+    .topbar-brand h1{font-size:.88rem;font-weight:700;}
+    .topbar-brand p{font-size:.7rem;color:var(--muted);}
+    .topbar-actions{display:flex;gap:.5rem;align-items:center;}
+    .btn{display:inline-flex;align-items:center;gap:.35rem;padding:.4rem .875rem;border-radius:7px;
+      border:1.5px solid;font-family:'Cairo',sans-serif;font-size:.78rem;font-weight:600;
+      cursor:pointer;transition:all .2s;text-decoration:none;}
+    .btn-primary{background:var(--primary);color:white;border-color:var(--primary);}
+    .btn-outline{background:white;color:#374151;border-color:var(--border);}
+    .btn-outline:hover{border-color:var(--primary);color:var(--primary);}
+
+    /* Filter bar */
+    .date-bar{background:white;border-bottom:1px solid var(--border);padding:.5rem 1.25rem;
+      display:flex;align-items:center;gap:1rem;flex-wrap:wrap;}
+    .date-bar label{font-size:.75rem;font-weight:700;color:var(--muted);}
+    .date-bar input,.date-bar select{padding:.3rem .6rem;border:1.5px solid var(--border);
+      border-radius:6px;font-family:'Cairo',sans-serif;font-size:.75rem;outline:none;}
+    .date-bar input:focus,.date-bar select:focus{border-color:var(--primary);}
+
+    /* Page wrap */
+    .page-wrap{max-width:794px;margin:1.25rem auto;padding:0 1rem 3rem;}
+
+    /* A4 sheet */
+    .a4-sheet{background:white;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.10);
+      padding:1.5rem 1.75rem;}
+
+    /* Sheet header */
+    .sheet-header{display:flex;align-items:center;justify-content:space-between;
+      padding-bottom:.75rem;border-bottom:2px solid var(--primary);margin-bottom:.875rem;}
+    .sheet-hright{display:flex;align-items:center;gap:.625rem;}
+    .sheet-logo{width:32px;height:32px;background:linear-gradient(135deg,var(--primary),var(--accent));
+      border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;font-size:.85rem;}
+    .sheet-title{font-size:.95rem;font-weight:800;}
+    .sheet-sub{font-size:.68rem;color:var(--muted);}
+    .sheet-meta{font-size:.68rem;color:var(--muted);text-align:left;line-height:1.6;}
+    .sheet-meta strong{color:var(--primary);}
+
+    /* Grid */
+    .summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.75rem;}
+    .summary-block{border:1px solid var(--border);border-radius:8px;padding:.625rem .75rem;background:#fafafa;}
+    .block-title{font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;
+      margin-bottom:.5rem;display:flex;align-items:center;gap:.3rem;
+      padding-bottom:.3rem;border-bottom:1px solid var(--border);}
+    .block-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+
+    /* Score rows */
+    .score-row{display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem;}
+    .score-row:last-child{margin-bottom:0;}
+    .score-label{flex:1;font-size:.68rem;font-weight:500;}
+    .bar-wrap{width:70px;flex-shrink:0;}
+    .bar-track{height:5px;background:#e5e7eb;border-radius:99px;overflow:hidden;}
+    .bar-fill{height:100%;border-radius:99px;}
+    .score-val{font-size:.68rem;font-weight:800;min-width:28px;text-align:left;}
+    .score-badge{font-size:.6rem;font-weight:700;padding:.08rem .35rem;border-radius:99px;white-space:nowrap;}
+
+    /* Prob rows */
+    .prob-row{display:flex;align-items:center;gap:.4rem;margin-bottom:.28rem;}
+    .prob-label{font-size:.65rem;min-width:72px;font-weight:500;}
+    .prob-count{font-size:.65rem;font-weight:700;min-width:30px;text-align:left;color:var(--muted);}
+
+    /* Future rows */
+    .future-row{display:flex;align-items:center;gap:.4rem;margin-bottom:.28rem;}
+    .future-label{flex:1;font-size:.65rem;font-weight:500;}
+    .future-avg{font-size:.68rem;font-weight:800;min-width:28px;text-align:center;}
+    .future-note{font-size:.58rem;color:var(--muted);min-width:50px;text-align:left;}
+
+    /* Dept table */
+    .dept-table{width:100%;border-collapse:collapse;}
+    .dept-table th{font-size:.62rem;font-weight:700;color:var(--muted);text-align:right;
+      padding:.2rem .3rem;border-bottom:1px solid var(--border);text-transform:uppercase;}
+    .dept-table td{font-size:.65rem;padding:.22rem .3rem;border-bottom:1px solid #f0f0f0;vertical-align:middle;}
+    .dept-table tr:last-child td{border-bottom:none;}
+
+    /* Summary bar */
+    .summary-bar{background:linear-gradient(135deg,#f0f4ff,#e8f5fe);border:1px solid #c7d7f9;
+      border-radius:8px;padding:.625rem .875rem;display:flex;align-items:flex-start;gap:.625rem;}
+    .summary-icon{font-size:1rem;flex-shrink:0;margin-top:1px;}
+    .summary-text{font-size:.7rem;color:var(--text);line-height:1.7;flex:1;}
+    .summary-text strong{color:var(--primary);}
+
+    /* Loading */
+    .loading-state{text-align:center;padding:2rem;color:var(--muted);}
+
+    @media print {
+      body{background:white;}
+      .topbar,.date-bar{display:none!important;}
+      .page-wrap{margin:0;padding:0;max-width:100%;}
+      .a4-sheet{box-shadow:none;border-radius:0;padding:1.25rem 1.5rem;}
+      *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+    }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-brand">
+    <div class="topbar-icon">📋</div>
+    <div>
+      <h1>ملخص الاجتماع — استبيان Odoo</h1>
+      <p>ملخص تنفيذي مضغوط جاهز للطباعة</p>
+    </div>
+  </div>
+  <div class="topbar-actions">
+    <button class="btn btn-outline" onclick="loadAndRender()">🔄 تحديث</button>
+    <button class="btn btn-primary" onclick="copyAsImage()" id="btn-copy">📸 نسخ كصورة</button>
+    <button class="btn btn-outline" onclick="window.print()">🖨️ طباعة</button>
+    <a href="dashboard.html" class="btn btn-outline">← رجوع للداش بورد</a>
+  </div>
+</div>
+
+<div class="date-bar">
+  <label>من:</label>
+  <input type="date" id="f-from" onchange="loadAndRender()" />
+  <label>إلى:</label>
+  <input type="date" id="f-to" onchange="loadAndRender()" />
+  <label>القسم:</label>
+  <select id="f-dept" onchange="loadAndRender()">
+    <option value="">كل الأقسام</option>
+  </select>
+</div>
+
+<div class="page-wrap">
+  <div class="a4-sheet" id="sheet">
+    <div class="loading-state">⏳ جاري تحميل البيانات...</div>
+  </div>
+</div>
+
+<script>
+const FB = firebase.initializeApp({
+  apiKey:"AIzaSyAK2-UBMDtyvkPGRGXJLXIq311U4N32fVo",
+  authDomain:"employee-survey-7a907.firebaseapp.com",
+  projectId:"employee-survey-7a907",
+  storageBucket:"employee-survey-7a907.firebasestorage.app",
+  messagingSenderId:"936069019815",
+  appId:"1:936069019815:web:b63cb3a565e57f3ec4c382"
+},'meeting');
+const db = firebase.firestore(FB);
+
+const OP_KEYS   = ['q0','q1','q2','q3','q4','q5','q7'];
+const OP_LABELS = ['سهولة الاستخدام','وضوح الشاشات','سرعة النظام','دقة البيانات','سهولة الوصول','توافق العمل','الرضا العام'];
+const FU_KEYS   = ['q8','q9','q10','q11'];
+const FU_LABELS = ['الإلمام بالنظام','نجاح النظام','الحاجة للتطوير','البحث عن بديل'];
+const FU_NOTES  = ['↑ أفضل','↑ أفضل','↑ تحذير','↑ تحذير'];
+const FU_WARN   = [false,false,true,true];
+const PROB_SCALE  = {1:'كثيرة جداً',2:'كثيرة',3:'متوسطة',4:'قليلة',5:'لا توجد'};
+const PROB_COLORS = {1:'#ef4444',2:'#f97316',3:'#eab308',4:'#22c55e',5:'#10b981'};
+
+const avge = arr => arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0;
+
+function sColor(v){ return v>=4?'#059669':v>=3?'#1a56db':v>=2?'#f97316':'#ef4444'; }
+function sBg(v)   { return v>=4?'#f0fdf4':v>=3?'#e8effe':v>=2?'#fffbeb':'#fef2f2'; }
+function sLbl(v)  { return v>=4?'جيد':v>=3?'متوسط':v>=2?'ضعيف':'ضعيف جداً'; }
+
+async function copyAsImage(){
+  const btn = document.getElementById('btn-copy');
+  const sheet = document.getElementById('sheet');
+  btn.textContent = '⏳ جاري...';
+  btn.disabled = true;
+  try {
+    const canvas = await html2canvas(sheet, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      logging: false,
+    });
+    canvas.toBlob(async blob => {
+      try {
+        await navigator.clipboard.write([
+          new ClipboardItem({ 'image/png': blob })
+        ]);
+        btn.textContent = '✅ تم النسخ!';
+        setTimeout(()=>{ btn.textContent='📸 نسخ كصورة'; btn.disabled=false; }, 2500);
+      } catch(e) {
+        // Fallback: download as image
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'meeting-summary.png';
+        a.click();
+        URL.revokeObjectURL(url);
+        btn.textContent = '⬇️ تم التنزيل';
+        setTimeout(()=>{ btn.textContent='📸 نسخ كصورة'; btn.disabled=false; }, 2500);
+      }
+    }, 'image/png');
+  } catch(e) {
+    console.error(e);
+    btn.textContent = '❌ خطأ';
+    btn.disabled = false;
+  }
+}
+
+async function loadAndRender(){
+  document.getElementById('sheet').innerHTML='<div class="loading-state">⏳ جاري تحميل البيانات...</div>';
+  try{
+    const snap = await db.collection('survey_responses').orderBy('timestamp','desc').get();
+    let data = snap.docs.map(d=>({id:d.id,...d.data()}));
+
+    const from = document.getElementById('f-from').value;
+    const to   = document.getElementById('f-to').value;
+    const dept = document.getElementById('f-dept').value;
+    if(from) data=data.filter(r=>r.timestamp?.slice(0,10)>=from);
+    if(to)   data=data.filter(r=>r.timestamp?.slice(0,10)<=to);
+    if(dept) data=data.filter(r=>r.department===dept);
+
+    const ds=document.getElementById('f-dept');
+    const existing=Array.from(ds.options).map(o=>o.value);
+    [...new Set(snap.docs.map(d=>d.data().department).filter(Boolean))].sort()
+      .forEach(d=>{ if(!existing.includes(d)){ const o=document.createElement('option'); o.value=d;o.textContent=d;ds.appendChild(o); } });
+    ds.value=dept;
+
+    if(!data.length){
+      document.getElementById('sheet').innerHTML='<div class="loading-state">⚠️ لا توجد بيانات في هذه الفترة.</div>';
+      return;
+    }
+    render(data);
+  }catch(e){
+    console.error(e);
+    document.getElementById('sheet').innerHTML='<div class="loading-state">❌ خطأ في تحميل البيانات. تأكد من اتصالك بالإنترنت.</div>';
+  }
+}
+
+function render(data){
+  const n   = data.length;
+  const now = new Date().toLocaleDateString('ar-SA',{day:'2-digit',month:'long',year:'numeric'});
+  const from= document.getElementById('f-from').value;
+  const to  = document.getElementById('f-to').value;
+  const dept= document.getElementById('f-dept').value;
+  const period = from&&to?`${from} — ${to}`:from?`من ${from}`:to?`حتى ${to}`:'جميع الفترات';
+
+  // Operational
+  const opAvgs = OP_KEYS.map(k=>{
+    const v=data.map(r=>r.ratings?.[k]).filter(v=>v!=null);
+    return v.length?avge(v):null;
+  });
+  const overallAvg = avge(opAvgs.filter(v=>v!=null));
+  const lowestIdx  = opAvgs.reduce((mi,v,i,a)=>v!=null&&(a[mi]==null||v<a[mi])?i:mi,0);
+  const highestIdx = opAvgs.reduce((mi,v,i,a)=>v!=null&&(a[mi]==null||v>a[mi])?i:mi,0);
+
+  // Problems q6
+  const probCounts={1:0,2:0,3:0,4:0,5:0};
+  data.forEach(r=>{ const v=r.ratings?.q6; if(v) probCounts[v]++; });
+
+  // Future
+  const fuAvgs = FU_KEYS.map(k=>{
+    const v=data.map(r=>r.ratings?.[k]).filter(v=>v!=null);
+    return v.length?avge(v):null;
+  });
+
+  // Dept
+  const depts={};
+  data.forEach(r=>{
+    const d=r.department||'غير محدد';
+    if(!depts[d]) depts[d]=[];
+    const opV=OP_KEYS.map(k=>r.ratings?.[k]).filter(v=>v!=null);
+    if(opV.length) depts[d].push(avge(opV));
+  });
+
+  document.getElementById('sheet').innerHTML = `
+    <div class="sheet-header">
+      <div class="sheet-hright">
+        <div class="sheet-logo">📋</div>
+        <div>
+          <div class="sheet-title">ملخص تنفيذي — استبيان تقييم نظام Odoo</div>
+          <div class="sheet-sub">مؤسسة تسويق الهدايا العالمية — Gift Mart International</div>
+        </div>
+      </div>
+      <div class="sheet-meta">
+        <div>التاريخ: <strong>${now}</strong></div>
+        <div>الفترة: <strong>${period}</strong></div>
+        <div>المستجيبون: <strong>${n} موظف${dept?' — '+dept:''}</strong></div>
+      </div>
+    </div>
+
+    <div class="summary-grid">
+      <!-- Operational -->
+      <div class="summary-block">
+        <div class="block-title" style="color:var(--primary);">
+          <div class="block-dot" style="background:var(--primary);"></div>
+          التقييم التشغيلي للنظام
+          <span style="margin-right:auto;font-size:.65rem;font-weight:800;
+            color:${sColor(overallAvg)};background:${sBg(overallAvg)};
+            padding:.1rem .4rem;border-radius:99px;">
+            ${overallAvg.toFixed(1)}/5 — ${sLbl(overallAvg)}
+          </span>
+        </div>
+        ${OP_LABELS.map((lbl,i)=>{
+          const v=opAvgs[i]; if(v==null) return '';
+          const pct=(v/5*100).toFixed(0); const c=sColor(v);
+          return `<div class="score-row">
+            <div class="score-label">${lbl}</div>
+            <div class="bar-wrap"><div class="bar-track">
+              <div class="bar-fill" style="width:${pct}%;background:${c};"></div>
+            </div></div>
+            <div class="score-val" style="color:${c};">${v.toFixed(1)}</div>
+            <div class="score-badge" style="color:${c};background:${sBg(v)};">${sLbl(v)}</div>
+          </div>`;
+        }).join('')}
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:.75rem;">
+        <!-- Problems -->
+        <div class="summary-block">
+          <div class="block-title" style="color:var(--warning);">
+            <div class="block-dot" style="background:var(--warning);"></div>
+            مستوى المشاكل والأخطاء
+          </div>
+          ${[1,2,3,4,5].map(v=>{
+            const c=probCounts[v]; const pct=n?(c/n*100).toFixed(0):0; const w=n?(c/n*100).toFixed(1):0;
+            return `<div class="prob-row">
+              <div class="prob-label" style="color:${PROB_COLORS[v]};">${PROB_SCALE[v]}</div>
+              <div class="bar-wrap" style="flex:1;"><div class="bar-track">
+                <div class="bar-fill" style="width:${w}%;background:${PROB_COLORS[v]};"></div>
+              </div></div>
+              <div class="prob-count">${c} (${pct}%)</div>
+            </div>`;
+          }).join('')}
+        </div>
+
+        <!-- Future -->
+        <div class="summary-block">
+          <div class="block-title" style="color:var(--purple);">
+            <div class="block-dot" style="background:var(--purple);"></div>
+            رأي الموظفين في مستقبل النظام
+          </div>
+          ${FU_LABELS.map((lbl,i)=>{
+            const v=fuAvgs[i]; if(v==null) return '';
+            const isW=FU_WARN[i];
+            const c=isW?(v>=4?'#ef4444':v>=3?'#f97316':v>=2?'#eab308':'#059669'):sColor(v);
+            const pct=(v/5*100).toFixed(0);
+            return `<div class="future-row">
+              <div class="future-label">${lbl}</div>
+              <div class="bar-wrap" style="width:55px;"><div class="bar-track">
+                <div class="bar-fill" style="width:${pct}%;background:${c};"></div>
+              </div></div>
+              <div class="future-avg" style="color:${c};">${v.toFixed(1)}</div>
+              <div class="future-note">${FU_NOTES[i]}</div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+    </div>
+
+    <!-- Dept -->
+    <div class="summary-block" style="margin-bottom:.75rem;">
+      <div class="block-title" style="color:var(--accent);">
+        <div class="block-dot" style="background:var(--accent);"></div>
+        تقييم النظام على مستوى الأقسام
+      </div>
+      <table class="dept-table">
+        <thead>
+          <tr><th>القسم</th><th>متوسط التقييم</th><th>المستوى</th><th>المستجيبون</th></tr>
+        </thead>
+        <tbody>
+          ${Object.entries(depts).sort((a,b)=>avge(b[1])-avge(a[1])).map(([d,scores])=>{
+            const a=avge(scores); const c=sColor(a); const pct=(a/5*100).toFixed(0);
+            return `<tr>
+              <td style="font-weight:600;">${d}</td>
+              <td><div style="display:flex;align-items:center;gap:.3rem;">
+                <div class="bar-track" style="width:60px;">
+                  <div class="bar-fill" style="width:${pct}%;background:${c};"></div>
+                </div>
+                <span style="font-weight:800;color:${c};font-size:.68rem;">${a.toFixed(1)}</span>
+              </div></td>
+              <td><span class="score-badge" style="color:${c};background:${sBg(a)};">${sLbl(a)}</span></td>
+              <td style="color:var(--muted);">${scores.length} موظف</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Smart Summary -->
+    <div class="summary-bar">
+      <div class="summary-icon">💡</div>
+      <div class="summary-text">${buildSummary(n,overallAvg,opAvgs,fuAvgs,lowestIdx,highestIdx,probCounts)}</div>
+    </div>`;
+}
+
+function buildSummary(n,overall,opAvgs,fuAvgs,lowestIdx,highestIdx,probCounts){
+  const lbl = v=>v>=4?'<strong>جيد</strong>':v>=3?'<strong>متوسط</strong>':v>=2?'<strong>ضعيف</strong>':'<strong>ضعيف جداً</strong>';
+  const worst = Object.entries(probCounts).sort((a,b)=>b[1]-a[1])[0];
+  const probLbl = {1:'كثيرة جداً',2:'كثيرة',3:'متوسطة',4:'قليلة',5:'لا توجد'}[worst[0]];
+  const probPct = Math.round(worst[1]/n*100);
+  const dev = fuAvgs[2]?.toFixed(1); const alt = fuAvgs[3]?.toFixed(1); const suc = fuAvgs[1]?.toFixed(1);
+  const weak   = OP_LABELS[lowestIdx];  const strong = OP_LABELS[highestIdx];
+
+  return `بناءً على <strong>${n} استبيان</strong>، جاء التقييم التشغيلي العام ${lbl(overall)} (<strong>${overall.toFixed(1)}/5</strong>).
+    أبرز نقطة قوة: <strong>${strong}</strong>، وأكثر جانب يحتاج تحسين: <strong>${weak}</strong>.
+    ${probPct}% من الموظفين يواجهون مشاكل <strong>${probLbl}</strong>.
+    يرى الموظفون أن النظام ${suc>=4?'<strong>ناجح</strong>':suc>=3?'<strong>مقبول</strong>':'<strong>بحاجة مراجعة</strong>'} في الشركة (${suc}/5)،
+    ومستوى الحاجة للتطوير <strong>${dev>=4?'مرتفع':dev>=3?'متوسط':'منخفض'}</strong> (${dev}/5)${
+    alt>=3.5?' مع <strong>ميل لاقتراح نظام بديل</strong> ('+alt+'/5).':'.'}`;
+}
+
+loadAndRender();
+</script>
+</body>
+</html>
