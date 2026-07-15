@@ -143,6 +143,27 @@ const av=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
 const sc=v=>v>=4?'#059669':v>=3?'#1a56db':v>=2?'#f97316':'#ef4444';
 const sb=v=>v>=4?'#f0fdf4':v>=3?'#e8effe':v>=2?'#fffbeb':'#fef2f2';
 
+// Normalize department names (EN → AR)
+const DEPT_MAP={
+  'sales':'المبيعات','Sales':'المبيعات',
+  'purchasing':'المشتريات','Purchasing':'المشتريات',
+  'production':'الإنتاج','Production':'الإنتاج',
+  'warehouse':'المستودعات والمخازن','Warehouse':'المستودعات والمخازن',
+  'Warehouse & Inventory':'المستودعات والمخازن',
+  'warehouse & inventory':'المستودعات والمخازن',
+  'accounting':'المحاسبة والمالية','Accounting':'المحاسبة والمالية',
+  'Accounting & Finance':'المحاسبة والمالية',
+  'hr':'الموارد البشرية','HR':'الموارد البشرية',
+  'Human Resources':'الموارد البشرية',
+  'it':'تقنية المعلومات','IT':'تقنية المعلومات',
+  'Information Technology':'تقنية المعلومات',
+  'customer service':'خدمة العملاء','Customer Service':'خدمة العملاء',
+  'management':'الإدارة العليا','Management':'الإدارة العليا',
+  'Senior Management':'الإدارة العليا',
+  'other':'أخرى','Other':'أخرى',
+};
+const normDept=d=>DEPT_MAP[d]||DEPT_MAP[d?.trim()]||d;
+
 let lang='ar';
 
 const T={
@@ -225,7 +246,7 @@ async function loadAndRender(){
     // Populate dept filter
     const ds=document.getElementById('f-dept');
     const ex=Array.from(ds.options).map(o=>o.value);
-    [...new Set(snap.docs.map(d=>d.data().department).filter(Boolean))].sort()
+    [...new Set(snap.docs.map(d=>normDept(d.data().department)).filter(Boolean))].sort()
       .forEach(d=>{if(!ex.includes(d)){const o=document.createElement('option');o.value=d;o.textContent=d;ds.appendChild(o);}});
     ds.value=dept;
 
@@ -268,7 +289,7 @@ function render(data){
 
   const depts={};
   data.forEach(r=>{
-    const d=r.department||'—';
+    const d=normDept(r.department)||'—';
     if(!depts[d])depts[d]={op:[],prob:[]};
     const opV=OPK.map(k=>r.ratings?.[k]).filter(v=>v!=null);
     if(opV.length)depts[d].op.push(av(opV));
