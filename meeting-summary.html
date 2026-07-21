@@ -59,7 +59,7 @@ body.ltr{font-family:'Inter',sans-serif;direction:ltr;}
 .kpi-v{font-size:.95rem;font-weight:800;line-height:1;}
 .kpi-l{font-size:.55rem;color:var(--mu);margin-top:.15rem;}
 
-.main-grid{display:grid;grid-template-columns:1fr 1.8fr;gap:.625rem;margin-bottom:.5rem;}
+.main-grid{display:grid;grid-template-columns:1fr 1.6fr;gap:.625rem;margin-bottom:.5rem;}
 .panel{border:1px solid var(--bd);border-radius:7px;padding:.45rem .6rem;background:#fafafa;}
 .panel-t{font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;
   color:var(--mu);margin-bottom:.35rem;padding-bottom:.25rem;border-bottom:1px solid var(--bd);
@@ -143,34 +143,6 @@ const av=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
 const sc=v=>v>=4?'#059669':v>=3?'#1a56db':v>=2?'#f97316':'#ef4444';
 const sb=v=>v>=4?'#f0fdf4':v>=3?'#e8effe':v>=2?'#fffbeb':'#fef2f2';
 
-// Normalize department names — bidirectional
-const DEPT_AR={
-  'sales':'المبيعات','Sales':'المبيعات',
-  'purchasing':'المشتريات','Purchasing':'المشتريات',
-  'production':'الإنتاج','Production':'الإنتاج',
-  'Warehouse & Inventory':'المستودعات والمخازن','warehouse & inventory':'المستودعات والمخازن',
-  'Warehouse':'المستودعات والمخازن','warehouse':'المستودعات والمخازن',
-  'Accounting & Finance':'المحاسبة والمالية','Accounting':'المحاسبة والمالية','accounting':'المحاسبة والمالية',
-  'Human Resources':'الموارد البشرية','HR':'الموارد البشرية','hr':'الموارد البشرية',
-  'Information Technology':'تقنية المعلومات','IT':'تقنية المعلومات','it':'تقنية المعلومات',
-  'Customer Service':'خدمة العملاء','customer service':'خدمة العملاء',
-  'Senior Management':'الإدارة العليا','Management':'الإدارة العليا',
-  'Other':'أخرى','other':'أخرى',
-};
-const DEPT_EN={
-  'المبيعات':'Sales','المشتريات':'Purchasing','الإنتاج':'Production',
-  'المستودعات والمخازن':'Warehouse & Inventory',
-  'المحاسبة والمالية':'Accounting & Finance',
-  'الموارد البشرية':'Human Resources',
-  'تقنية المعلومات':'Information Technology',
-  'خدمة العملاء':'Customer Service',
-  'الإدارة العليا':'Senior Management',
-  'أخرى':'Other',
-};
-// Always store as Arabic internally, convert for display
-const normDept=d=>DEPT_AR[d]||DEPT_AR[d?.trim()]||d||'—';
-const displayDept=d=>lang==='en'?(DEPT_EN[normDept(d)]||normDept(d)):normDept(d);
-
 let lang='ar';
 
 const T={
@@ -253,7 +225,7 @@ async function loadAndRender(){
     // Populate dept filter
     const ds=document.getElementById('f-dept');
     const ex=Array.from(ds.options).map(o=>o.value);
-    [...new Set(snap.docs.map(d=>normDept(d.data().department)).filter(Boolean))].sort()
+    [...new Set(snap.docs.map(d=>d.data().department).filter(Boolean))].sort()
       .forEach(d=>{if(!ex.includes(d)){const o=document.createElement('option');o.value=d;o.textContent=d;ds.appendChild(o);}});
     ds.value=dept;
 
@@ -296,7 +268,7 @@ function render(data){
 
   const depts={};
   data.forEach(r=>{
-    const d=normDept(r.department)||'—';
+    const d=r.department||'—';
     if(!depts[d])depts[d]={op:[],prob:[]};
     const opV=OPK.map(k=>r.ratings?.[k]).filter(v=>v!=null);
     if(opV.length)depts[d].op.push(av(opV));
@@ -324,20 +296,18 @@ function render(data){
     const c=DC[i%DC.length];
     const opP=(d.op/5*100).toFixed(0);
     const prP=d.prob?((6-d.prob)/5*100).toFixed(0):0;
-    // Don't truncate — show full name
-    const name=displayDept(d.d);
-    return`<div style="display:flex;align-items:center;gap:.35rem;margin-bottom:.22rem;">
-      <div style="font-size:.58rem;font-weight:600;min-width:110px;max-width:110px;
-        text-align:right;color:#111;direction:rtl;line-height:1.3;">${name}</div>
+    const name=d.d.length>13?d.d.slice(0,13)+'…':d.d;
+    return`<div style="display:flex;align-items:center;gap:.3rem;margin-bottom:.2rem;">
+      <div style="font-size:.58rem;font-weight:600;min-width:78px;text-align:${lang==='ar'?'right':'left'};color:#111;">${name}</div>
       <div style="flex:1;">
-        <div style="height:7px;background:#e5e7eb;border-radius:99px;overflow:hidden;margin-bottom:2px;">
+        <div style="height:6px;background:#e5e7eb;border-radius:99px;overflow:hidden;margin-bottom:2px;">
           <div style="height:100%;width:${opP}%;background:${c};border-radius:99px;"></div>
         </div>
         <div style="height:4px;background:#e5e7eb;border-radius:99px;overflow:hidden;">
-          <div style="height:100%;width:${prP}%;background:rgba(220,38,38,0.6);border-radius:99px;"></div>
+          <div style="height:100%;width:${prP}%;background:rgba(220,38,38,0.7);border-radius:99px;"></div>
         </div>
       </div>
-      <div style="font-size:.62rem;font-weight:800;min-width:24px;text-align:left;color:${c};">${d.op.toFixed(1)}</div>
+      <div style="font-size:.6rem;font-weight:800;min-width:22px;text-align:left;color:${c};">${d.op.toFixed(1)}</div>
     </div>`;
   }).join('');
 
@@ -351,8 +321,8 @@ function render(data){
     :`Strongest: <strong>${t.OPL[hiI]}</strong>, weakest: <strong>${t.OPL[loI]}</strong>. <strong>${pPct}%</strong> face <strong>${pLbl}</strong> problems. `;
   if(best&&worst&&best.d!==worst.d)
     sum+=lang==='ar'
-      ?`أفضل قسم: <strong>${displayDept(best.d)}</strong> (${best.op.toFixed(1)}/5)، أدنى قسم: <strong>${displayDept(worst.d)}</strong> (${worst.op.toFixed(1)}/5). `
-      :`Best dept: <strong>${displayDept(best.d)}</strong> (${best.op.toFixed(1)}/5), lowest: <strong>${displayDept(worst.d)}</strong> (${worst.op.toFixed(1)}/5). `;
+      ?`أفضل قسم: <strong>${best.d}</strong> (${best.op.toFixed(1)}/5)، أدنى قسم: <strong>${worst.d}</strong> (${worst.op.toFixed(1)}/5). `
+      :`Best dept: <strong>${best.d}</strong> (${best.op.toFixed(1)}/5), lowest: <strong>${worst.d}</strong> (${worst.op.toFixed(1)}/5). `;
   if(suc!=null) sum+=lang==='ar'
     ?`رأي الموظفين في نجاح النظام: ${lv(suc)} (${suc.toFixed(1)}/5)`
     :`Employees rate system success: ${lv(suc)} (${suc.toFixed(1)}/5)`;
@@ -403,17 +373,9 @@ function render(data){
           <div class="pdot" style="background:var(--ac)"></div>${t.chartT}
         </div>
         ${deptBars}
-        <div class="leg" style="flex-direction:column;align-items:flex-start;gap:.3rem;margin-top:.4rem;">
-          <div class="leg-i">
-            <div style="display:flex;gap:3px;">
-              ${DC.slice(0,5).map(c=>`<div style="width:10px;height:6px;border-radius:3px;background:${c};"></div>`).join('')}
-            </div>
-            <span>${lang==='ar'?'التقييم التشغيلي — كل قسم بلون مختلف للتمييز':'Operational score — each dept has a unique color'}</span>
-          </div>
-          <div class="leg-i">
-            <div style="width:32px;height:4px;border-radius:3px;background:rgba(220,38,38,0.6);"></div>
-            <span>${lang==='ar'?'مستوى المشاكل — الأطول = مشاكل أكثر':'Problem level — longer = more problems'}</span>
-          </div>
+        <div class="leg">
+          <div class="leg-i"><div class="leg-d" style="background:var(--pr)"></div>${t.leg1}</div>
+          <div class="leg-i"><div class="leg-d" style="background:rgba(220,38,38,0.7)"></div>${t.leg2}</div>
         </div>
       </div>
     </div>
