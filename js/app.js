@@ -21,8 +21,8 @@ const CONFIG = {
      اضبط التواريخ ثم ارفع الملف — سيُغلق تلقائياً
      ══════════════════════════════════════════ */
   survey: {
-    dateOpen:  '2026-07-22 T00:00:00',   // ← تاريخ الفتح
-    dateClose: '2026-07-27 T17:00:00',   // ← تاريخ الإغلاق
+    dateOpen:  '2026-07-21T00:00:00',   // ← تاريخ الفتح
+    dateClose: '2026-07-26T17:00:00',   // ← تاريخ الإغلاق
     roundName: 'Round 2 — July 2026',   // ← اسم الجولة
   },
 };
@@ -621,10 +621,11 @@ function showToast(msg, type='') {
 function fillPeriodBanner() {
   const open  = new Date(CONFIG.survey.dateOpen);
   const close = new Date(CONFIG.survey.dateClose);
-  const fmt = d => d.toLocaleString('en-GB', {
-    day:'2-digit', month:'long', year:'numeric',
-    hour:'2-digit', minute:'2-digit', hour12: true
-  });
+  const fmt = d => {
+  const date = d.toLocaleDateString('en-GB', {day:'2-digit', month:'long', year:'numeric'});
+  const time = d.toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit', hour12: true});
+  return `${date} at ${time}`;
+};
   const el = (id, txt) => { const e = document.getElementById(id); if(e) e.textContent = txt; };
   el('period-open',  fmt(open));
   el('period-close', fmt(close));
