@@ -121,7 +121,7 @@ body{font-family:'Cairo',sans-serif;color:var(--tx);background:#dde1ea;direction
 .emp-table th{background:#f9fafb;padding:.3rem .4rem;text-align:right;
   border-bottom:1.5px solid var(--bd);font-weight:700;color:var(--mu);
   font-size:.58rem;text-transform:uppercase;letter-spacing:.03em;}
-.emp-table td{padding:.3rem .4rem;border-bottom:1px solid #f0f0f0;vertical-align:middle;}
+.emp-table td{padding:.3rem .4rem;border-bottom:1px solid #f0f0f0;vertical-align:middle;white-space:nowrap;}
 .emp-table tr:last-child td{border-bottom:none;}
 .emp-table tr:hover td{background:#fafafa;}
 .emp-pill{display:inline-flex;align-items:center;padding:.08rem .35rem;white-space:nowrap;
@@ -350,7 +350,7 @@ function render(d1,d2,n1,n2,p1f,p1t,p2f,p2t){
           <div class="cmp-bar-val" style="color:${C2}">${v2?v2.toFixed(1):'—'}</div>
         </div>
       </div>
-      ${deltaPill(d)}
+      <div style="min-width:38px;text-align:center;flex-shrink:0;">${deltaPill(d)}</div>
     </div>`;
   }).join('');
 
@@ -394,7 +394,7 @@ function render(d1,d2,n1,n2,p1f,p1t,p2f,p2t){
           <div class="dept-val" style="color:${C2}">${v2?v2.toFixed(1):'—'}</div>
         </div>
       </div>
-      ${deltaPill(dv)}
+      <div style="min-width:38px;text-align:center;flex-shrink:0;">${deltaPill(dv)}</div>
     </div>`;
   }).join('');
 
@@ -525,13 +525,13 @@ function render(d1,d2,n1,n2,p1f,p1t,p2f,p2t){
       <div style="overflow-x:auto;">
         <table class="emp-table">
           <thead>
-            <tr>
-              <th>الموظف</th><th>القسم</th>
-              <th style="color:${C1}">${n1}</th>
-              <th style="color:${C2}">${n2}</th>
-              <th>التغيير</th>
-            </tr>
-          </thead>
+          <tr>
+            <th>الموظف</th><th>القسم</th>
+            <th style="color:${C1};min-width:50px">${n1}</th>
+            <th style="color:${C2};min-width:50px">${n2}</th>
+            <th style="min-width:50px">التغيير</th>
+          </tr>
+        </thead>
           <tbody>${empRows}</tbody>
         </table>
       </div>`:'<div class="empty">⚠️ لا يوجد موظفون بنفس الاسم في الفترتين — تأكد أن الأسماء موحدة</div>'}
