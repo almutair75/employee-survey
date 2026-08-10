@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>مقارنة الفترات — استبيان Odoo</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+:root{--pr:#1a56db;--ac:#0891b2;--ok:#059669;--wa:#d97706;--er:#dc2626;
+  --p1:#1a56db;--p2:#059669; /* Period 1 = blue, Period 2 = green */
+  --tx:#111827;--mu:#6b7280;--bd:#e5e7eb;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;color:var(--tx);background:#dde1ea;direction:rtl;font-size:11px;}
+
+.topbar{background:white;border-bottom:1px solid var(--bd);padding:.5rem 1rem;
+  display:flex;align-items:center;justify-content:space-between;gap:.75rem;
+  position:sticky;top:0;z-index:100;box-shadow:0 2px 6px rgba(0,0,0,.07);}
+.tb-brand{display:flex;align-items:center;gap:.5rem;}
+.tb-icon{width:30px;height:30px;background:linear-gradient(135deg,var(--p1),var(--p2));
+  border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;font-size:.9rem;}
+.tb-brand h1{font-size:.85rem;font-weight:700;}
+.tb-brand p{font-size:.62rem;color:var(--mu);}
+.tb-actions{display:flex;gap:.4rem;}
+.btn{display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .75rem;border-radius:7px;
+  border:1.5px solid;font-size:.72rem;font-weight:700;cursor:pointer;text-decoration:none;
+  white-space:nowrap;font-family:inherit;transition:all .15s;}
+.btn-pr{background:var(--pr);color:white;border-color:var(--pr);}
+.btn-ol{background:white;color:#374151;border-color:var(--bd);}
+.btn-ol:hover{border-color:var(--pr);color:var(--pr);}
+
+/* Period selector */
+.period-bar{background:white;border-bottom:1px solid var(--bd);padding:.75rem 1rem;
+  display:grid;grid-template-columns:1fr 1fr auto;gap:1rem;align-items:end;}
+.period-box{border:2px solid var(--bd);border-radius:10px;padding:.625rem .875rem;}
+.period-box.p1{border-color:var(--p1);background:#f0f4ff;}
+.period-box.p2{border-color:var(--p2);background:#f0fdf4;}
+.period-label{font-size:.7rem;font-weight:800;margin-bottom:.5rem;display:flex;align-items:center;gap:.35rem;}
+.period-dot{width:10px;height:10px;border-radius:50%;}
+.period-fields{display:flex;gap:.5rem;align-items:center;}
+.period-fields label{font-size:.65rem;color:var(--mu);font-weight:600;white-space:nowrap;}
+.period-fields input{padding:.25rem .5rem;border:1.5px solid var(--bd);border-radius:6px;
+  font-size:.68rem;font-family:inherit;outline:none;width:130px;}
+.period-fields input:focus{border-color:var(--pr);}
+.period-name{padding:.25rem .5rem;border:1.5px solid var(--bd);border-radius:6px;
+  font-size:.68rem;font-family:inherit;outline:none;width:110px;}
+
+.wrap{max-width:900px;margin:1rem auto;padding:0 .75rem 3rem;}
+
+/* Card */
+.card{background:white;border-radius:10px;box-shadow:0 3px 14px rgba(0,0,0,.09);
+  padding:.875rem 1.1rem;margin-bottom:.75rem;}
+
+/* Header */
+.card-hdr{display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:.625rem;padding-bottom:.4rem;border-bottom:1.5px solid var(--bd);}
+.card-hdr-l{display:flex;align-items:center;gap:.5rem;}
+.card-icon{width:24px;height:24px;background:linear-gradient(135deg,var(--p1),var(--p2));
+  border-radius:6px;display:flex;align-items:center;justify-content:center;color:white;font-size:.7rem;}
+.card-title{font-size:.82rem;font-weight:800;}
+.card-sub{font-size:.6rem;color:var(--mu);}
+
+/* Period legend badges */
+.legend-row{display:flex;gap:.75rem;}
+.leg{display:flex;align-items:center;gap:.3rem;font-size:.65rem;font-weight:700;}
+.leg-dot{width:10px;height:10px;border-radius:50%;}
+
+/* KPI comparison grid */
+.kpi-cmp{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;margin-bottom:.75rem;}
+.kpi-c{border:1px solid var(--bd);border-radius:8px;padding:.5rem .625rem;background:#fafafa;text-align:center;}
+.kpi-c-label{font-size:.58rem;color:var(--mu);margin-bottom:.375rem;font-weight:600;}
+.kpi-c-vals{display:flex;justify-content:center;align-items:flex-end;gap:.5rem;}
+.kpi-val{font-size:.9rem;font-weight:800;line-height:1;}
+.kpi-sub{font-size:.52rem;color:var(--mu);}
+.kpi-delta{font-size:.65rem;font-weight:800;padding:.1rem .35rem;border-radius:99px;margin-top:.25rem;}
+.delta-up{background:#f0fdf4;color:#059669;}
+.delta-down{background:#fef2f2;color:#dc2626;}
+.delta-same{background:#f3f4f6;color:#6b7280;}
+
+/* Comparison bars */
+.cmp-section-title{font-size:.68rem;font-weight:800;text-transform:uppercase;
+  letter-spacing:.04em;color:var(--mu);margin-bottom:.5rem;padding-bottom:.25rem;
+  border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:.25rem;}
+.cmp-pdot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+
+.cmp-row{display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem;}
+.cmp-label{font-size:.62rem;font-weight:600;min-width:90px;text-align:right;}
+.cmp-bars{flex:1;display:flex;flex-direction:column;gap:2px;}
+.cmp-bar-wrap{display:flex;align-items:center;gap:.3rem;}
+.cmp-bar-track{flex:1;height:7px;background:#e5e7eb;border-radius:99px;overflow:hidden;}
+.cmp-bar-fill{height:100%;border-radius:99px;transition:width .5s ease;}
+.cmp-bar-val{font-size:.6rem;font-weight:800;min-width:24px;text-align:left;}
+.cmp-delta-pill{font-size:.55rem;font-weight:700;padding:.06rem .3rem;border-radius:99px;
+  min-width:32px;text-align:center;flex-shrink:0;}
+
+/* 2-col grid */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;}
+
+/* Problems comparison */
+.prob-row{display:flex;align-items:center;gap:.35rem;margin-bottom:.22rem;}
+.prob-label{font-size:.6rem;min-width:60px;font-weight:500;}
+.prob-bars{flex:1;display:flex;flex-direction:column;gap:2px;}
+.prob-bar-wrap{display:flex;align-items:center;gap:.25rem;}
+.prob-track{flex:1;height:5px;background:#e5e7eb;border-radius:99px;overflow:hidden;}
+.prob-fill{height:100%;border-radius:99px;}
+.prob-val{font-size:.57rem;font-weight:700;min-width:28px;text-align:left;color:var(--mu);}
+
+/* Dept comparison */
+.dept-cmp-row{display:flex;align-items:center;gap:.35rem;margin-bottom:.28rem;}
+.dept-name{font-size:.6rem;font-weight:600;min-width:90px;text-align:right;direction:rtl;}
+.dept-bars{flex:1;display:flex;flex-direction:column;gap:2px;}
+.dept-bar-wrap{display:flex;align-items:center;gap:.25rem;}
+.dept-track{flex:1;height:6px;background:#e5e7eb;border-radius:99px;overflow:hidden;}
+.dept-fill{height:100%;border-radius:99px;}
+.dept-val{font-size:.58rem;font-weight:800;min-width:22px;text-align:left;}
+
+/* Employee comparison table */
+.emp-table{width:100%;border-collapse:collapse;font-size:.62rem;}
+.emp-table th{background:#f9fafb;padding:.3rem .4rem;text-align:right;
+  border-bottom:1.5px solid var(--bd);font-weight:700;color:var(--mu);
+  font-size:.58rem;text-transform:uppercase;letter-spacing:.03em;}
+.emp-table td{padding:.3rem .4rem;border-bottom:1px solid #f0f0f0;vertical-align:middle;}
+.emp-table tr:last-child td{border-bottom:none;}
+.emp-table tr:hover td{background:#fafafa;}
+.emp-pill{display:inline-flex;align-items:center;padding:.08rem .35rem;
+  border-radius:99px;font-size:.58rem;font-weight:700;}
+
+/* Summary */
+.sum-bar{background:linear-gradient(135deg,#f0f4ff,#f0fdf4);
+  border:1px solid #c7d7f9;border-radius:8px;
+  padding:.5rem .875rem;display:flex;align-items:flex-start;gap:.5rem;}
+.sum-icon{font-size:.9rem;flex-shrink:0;margin-top:1px;}
+.sum-txt{font-size:.65rem;color:var(--tx);line-height:1.7;flex:1;}
+.sum-txt strong{color:var(--pr);}
+.sum-txt .up{color:#059669;font-weight:800;}
+.sum-txt .dn{color:#dc2626;font-weight:800;}
+
+.loading{text-align:center;padding:2rem;color:var(--mu);font-size:.82rem;}
+.empty{text-align:center;padding:1.5rem;color:var(--mu);font-size:.75rem;
+  border:1.5px dashed var(--bd);border-radius:8px;background:#fafafa;}
+
+@media print{
+  body{background:white;}
+  .topbar,.period-bar{display:none!important;}
+  .wrap{margin:0;padding:0;max-width:100%;}
+  .card{box-shadow:none;border-radius:0;margin-bottom:0;}
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="tb-brand">
+    <div class="tb-icon">⚖️</div>
+    <div>
+      <h1>مقارنة الفترات — استبيان Odoo</h1>
+      <p>قارن نتائج جولتين من الاستبيان</p>
+    </div>
+  </div>
+  <div class="tb-actions">
+    <button class="btn btn-pr" onclick="runCompare()" id="btn-run">🔍 تشغيل المقارنة</button>
+    <button class="btn btn-ol" onclick="copyAsImage()">📸 نسخ كصورة</button>
+    <button class="btn btn-ol" onclick="window.print()">🖨️ طباعة</button>
+    <a href="dashboard.html" class="btn btn-ol">← رجوع</a>
+  </div>
+</div>
+
+<!-- Period Selector -->
+<div class="period-bar">
+  <div class="period-box p1">
+    <div class="period-label" style="color:var(--p1)">
+      <div class="period-dot" style="background:var(--p1)"></div>
+      الفترة الأولى
+    </div>
+    <div class="period-fields">
+      <label>من:</label><input type="date" id="p1-from"/>
+      <label>إلى:</label><input type="date" id="p1-to"/>
+      <input class="period-name" id="p1-name" placeholder="اسم الجولة" value="الجولة الأولى"/>
+    </div>
+  </div>
+  <div class="period-box p2">
+    <div class="period-label" style="color:var(--p2)">
+      <div class="period-dot" style="background:var(--p2)"></div>
+      الفترة الثانية
+    </div>
+    <div class="period-fields">
+      <label>من:</label><input type="date" id="p2-from"/>
+      <label>إلى:</label><input type="date" id="p2-to"/>
+      <input class="period-name" id="p2-name" placeholder="اسم الجولة" value="الجولة الثانية"/>
+    </div>
+  </div>
+  <button class="btn btn-pr" onclick="runCompare()" style="height:fit-content">
+    🔍 مقارنة
+  </button>
+</div>
+
+<div class="wrap" id="results">
+  <div class="card">
+    <div class="loading">حدد الفترتين أعلاه واضغط <strong>تشغيل المقارنة</strong></div>
+  </div>
+</div>
+
+<script>
+/* ── Firebase ── */
+const FB=firebase.initializeApp({
+  apiKey:"AIzaSyAK2-UBMDtyvkPGRGXJLXIq311U4N32fVo",
+  authDomain:"employee-survey-7a907.firebaseapp.com",
+  projectId:"employee-survey-7a907",
+  storageBucket:"employee-survey-7a907.firebasestorage.app",
+  messagingSenderId:"936069019815",
+  appId:"1:936069019815:web:b63cb3a565e57f3ec4c382"
+},'compare');
+const db=firebase.firestore(FB);
+
+/* ── Constants ── */
+const OPK=['q0','q1','q2','q3','q4','q5','q7'];
+const OPL=['سهولة الاستخدام','وضوح الشاشات','سرعة النظام','دقة البيانات','سهولة الوصول','توافق العمل','الرضا العام'];
+const PRS={1:'كثيرة جداً',2:'كثيرة',3:'متوسطة',4:'قليلة',5:'لا توجد'};
+const PRC={1:'#ef4444',2:'#f97316',3:'#eab308',4:'#22c55e',5:'#10b981'};
+const DEPT_MAP={
+  'Sales':'المبيعات','Purchasing':'المشتريات','Production':'الإنتاج',
+  'Warehouse & Inventory':'المستودعات والمخازن','Warehouse':'المستودعات والمخازن',
+  'Accounting & Finance':'المحاسبة والمالية','Accounting':'المحاسبة والمالية',
+  'Human Resources':'الموارد البشرية','HR':'الموارد البشرية',
+  'Information Technology':'تقنية المعلومات','IT':'تقنية المعلومات',
+  'Customer Service':'خدمة العملاء','Senior Management':'الإدارة العليا',
+  'Other':'أخرى',
+};
+const normD=d=>DEPT_MAP[d]||DEPT_MAP[d?.trim()]||d||'—';
+const av=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
+const sc=v=>v>=4?'#059669':v>=3?'#1a56db':v>=2?'#f97316':'#ef4444';
+const sl=v=>v>=4?'جيد':v>=3?'متوسط':v>=2?'ضعيف':'ضعيف جداً';
+
+const C1='#1a56db', C2='#059669'; // Period colors
+
+/* ── Load all data once ── */
+let allData=[];
+async function loadAll(){
+  if(allData.length) return allData;
+  const snap=await db.collection('survey_responses').orderBy('timestamp','desc').get();
+  allData=snap.docs.map(d=>({id:d.id,...d.data(),department:normD(d.data().department)}));
+  return allData;
+}
+
+function filterByPeriod(data,from,to){
+  return data.filter(r=>{
+    const d=r.timestamp?.slice(0,10)||'';
+    if(from&&d<from) return false;
+    if(to&&d>to) return false;
+    return true;
+  });
+}
+
+/* ── Main ── */
+async function runCompare(){
+  const btn=document.getElementById('btn-run');
+  btn.textContent='⏳ جاري...'; btn.disabled=true;
+  const res=document.getElementById('results');
+  res.innerHTML='<div class="card"><div class="loading">⏳ جاري تحميل وتحليل البيانات...</div></div>';
+
+  try{
+    const all=await loadAll();
+    const p1f=document.getElementById('p1-from').value;
+    const p1t=document.getElementById('p1-to').value;
+    const p2f=document.getElementById('p2-from').value;
+    const p2t=document.getElementById('p2-to').value;
+    const n1=document.getElementById('p1-name').value||'الجولة الأولى';
+    const n2=document.getElementById('p2-name').value||'الجولة الثانية';
+
+    if(!p1f||!p1t||!p2f||!p2t){
+      res.innerHTML='<div class="card"><div class="empty">⚠️ يرجى تحديد تواريخ الفترتين كاملة</div></div>';
+      btn.textContent='🔍 تشغيل المقارنة'; btn.disabled=false;
+      return;
+    }
+
+    const d1=filterByPeriod(all,p1f,p1t);
+    const d2=filterByPeriod(all,p2f,p2t);
+
+    if(!d1.length||!d2.length){
+      res.innerHTML=`<div class="card"><div class="empty">⚠️ ${!d1.length?`لا توجد بيانات في ${n1}`:`لا توجد بيانات في ${n2}`}</div></div>`;
+      btn.textContent='🔍 تشغيل المقارنة'; btn.disabled=false;
+      return;
+    }
+
+    render(d1,d2,n1,n2,p1f,p1t,p2f,p2t);
+  }catch(e){
+    console.error(e);
+    res.innerHTML='<div class="card"><div class="loading">❌ خطأ في تحميل البيانات</div></div>';
+  }
+  btn.textContent='🔍 تشغيل المقارنة'; btn.disabled=false;
+}
+
+function calcStats(data){
+  const opA=OPK.map(k=>{const v=data.map(r=>r.ratings?.[k]).filter(v=>v!=null);return v.length?av(v):null;});
+  const tot=av(opA.filter(v=>v!=null));
+  const pc={1:0,2:0,3:0,4:0,5:0};
+  data.forEach(r=>{const v=r.ratings?.q6;if(v)pc[v]++;});
+  const fuA=['q8','q9','q10','q11'].map(k=>{const v=data.map(r=>r.ratings?.[k]).filter(v=>v!=null);return v.length?av(v):null;});
+  const depts={};
+  data.forEach(r=>{
+    const d=r.department||'—';
+    if(!depts[d])depts[d]=[];
+    const v=OPK.map(k=>r.ratings?.[k]).filter(v=>v!=null);
+    if(v.length)depts[d].push(av(v));
+  });
+  const sat=data.map(r=>r.ratings?.q7).filter(v=>v!=null);
+  return{n:data.length,opA,tot,pc,fuA,depts,sat:sat.length?av(sat):0};
+}
+
+function delta(v1,v2){
+  if(v1==null||v2==null) return null;
+  return +(v2-v1).toFixed(2);
+}
+function deltaPill(d){
+  if(d==null) return '';
+  if(Math.abs(d)<0.05) return`<span class="emp-pill delta-same" style="background:#f3f4f6;color:#6b7280">—</span>`;
+  const up=d>0;
+  return`<span class="emp-pill" style="background:${up?'#f0fdf4':'#fef2f2'};color:${up?'#059669':'#dc2626'}">${up?'↑':'↓'}${Math.abs(d).toFixed(1)}</span>`;
+}
+
+function render(d1,d2,n1,n2,p1f,p1t,p2f,p2t){
+  const s1=calcStats(d1), s2=calcStats(d2);
+
+  /* ── KPI Cards ── */
+  const kpiHtml=`
+    <div class="kpi-cmp">
+      ${kpiCard('المشاركون',s1.n,s2.n,'موظف','موظف',false)}
+      ${kpiCard('التقييم التشغيلي',s1.tot,s2.tot,'/5','/5',true)}
+      ${kpiCard('الرضا العام',s1.sat,s2.sat,'/5','/5',true)}
+      ${kpiCard('الأقسام المشاركة',Object.keys(s1.depts).length,Object.keys(s2.depts).length,'قسم','قسم',false)}
+    </div>`;
+
+  /* ── Operational Comparison ── */
+  const opRows=OPL.map((l,i)=>{
+    const v1=s1.opA[i], v2=s2.opA[i];
+    const p1=(v1?v1/5*100:0).toFixed(0), p2=(v2?v2/5*100:0).toFixed(0);
+    const d=delta(v1,v2);
+    return`<div class="cmp-row">
+      <div class="cmp-label">${l}</div>
+      <div class="cmp-bars">
+        <div class="cmp-bar-wrap">
+          <div class="cmp-bar-track"><div class="cmp-bar-fill" style="width:${p1}%;background:${C1}"></div></div>
+          <div class="cmp-bar-val" style="color:${C1}">${v1?v1.toFixed(1):'—'}</div>
+        </div>
+        <div class="cmp-bar-wrap">
+          <div class="cmp-bar-track"><div class="cmp-bar-fill" style="width:${p2}%;background:${C2}"></div></div>
+          <div class="cmp-bar-val" style="color:${C2}">${v2?v2.toFixed(1):'—'}</div>
+        </div>
+      </div>
+      ${deltaPill(d)}
+    </div>`;
+  }).join('');
+
+  /* ── Problems Comparison ── */
+  const probRows=[1,2,3,4,5].map(v=>{
+    const c1=s1.pc[v], c2=s2.pc[v];
+    const w1=s1.n?(c1/s1.n*100).toFixed(1):0;
+    const w2=s2.n?(c2/s2.n*100).toFixed(1):0;
+    return`<div class="prob-row">
+      <div class="prob-label" style="color:${PRC[v]}">${PRS[v]}</div>
+      <div class="prob-bars">
+        <div class="prob-bar-wrap">
+          <div class="prob-track"><div class="prob-fill" style="width:${w1}%;background:${C1}80"></div></div>
+          <div class="prob-val">${c1}(${Math.round(w1)}%)</div>
+        </div>
+        <div class="prob-bar-wrap">
+          <div class="prob-track"><div class="prob-fill" style="width:${w2}%;background:${C2}80"></div></div>
+          <div class="prob-val">${c2}(${Math.round(w2)}%)</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  /* ── Dept Comparison ── */
+  const allDepts=[...new Set([...Object.keys(s1.depts),...Object.keys(s2.depts)])].sort();
+  const deptRows=allDepts.map(d=>{
+    const v1=s1.depts[d]?av(s1.depts[d]):null;
+    const v2=s2.depts[d]?av(s2.depts[d]):null;
+    const p1=v1?(v1/5*100).toFixed(0):0;
+    const p2=v2?(v2/5*100).toFixed(0):0;
+    const dv=delta(v1,v2);
+    return`<div class="dept-cmp-row">
+      <div class="dept-name">${d}</div>
+      <div class="dept-bars">
+        <div class="dept-bar-wrap">
+          <div class="dept-track"><div class="dept-fill" style="width:${p1}%;background:${C1}"></div></div>
+          <div class="dept-val" style="color:${C1}">${v1?v1.toFixed(1):'—'}</div>
+        </div>
+        <div class="dept-bar-wrap">
+          <div class="dept-track"><div class="dept-fill" style="width:${p2}%;background:${C2}"></div></div>
+          <div class="dept-val" style="color:${C2}">${v2?v2.toFixed(1):'—'}</div>
+        </div>
+      </div>
+      ${deltaPill(dv)}
+    </div>`;
+  }).join('');
+
+  /* ── Employee Matching ── */
+  const empMap={};
+  d1.forEach(r=>{
+    const key=r.name?.trim().toLowerCase();
+    if(key) empMap[key]={r1:r,r2:null,name:r.name,dept:r.department};
+  });
+  d2.forEach(r=>{
+    const key=r.name?.trim().toLowerCase();
+    if(key){
+      if(empMap[key]) empMap[key].r2=r;
+      else empMap[key]={r1:null,r2:r,name:r.name,dept:r.department};
+    }
+  });
+  const matched=Object.values(empMap).filter(e=>e.r1&&e.r2);
+  const only1=Object.values(empMap).filter(e=>e.r1&&!e.r2);
+  const only2=Object.values(empMap).filter(e=>!e.r1&&e.r2);
+
+  const empRows=matched.sort((a,b)=>{
+    const av1=a.r1.avgRating||0, av2=a.r2.avgRating||0;
+    return (av2-av1)-(av1-av2);
+  }).map(e=>{
+    const v1=e.r1.avgRating||0, v2=e.r2.avgRating||0;
+    const dv=delta(v1,v2);
+    return`<tr>
+      <td style="font-weight:700">${e.name}</td>
+      <td>${e.dept}</td>
+      <td><span style="font-weight:800;color:${sc(v1)}">${v1.toFixed(1)}</span></td>
+      <td><span style="font-weight:800;color:${sc(v2)}">${v2.toFixed(1)}</span></td>
+      <td>${deltaPill(dv)}</td>
+    </tr>`;
+  }).join('');
+
+  /* ── Smart Summary ── */
+  const bestImproved=matched.sort((a,b)=>(b.r2.avgRating-b.r1.avgRating)-(a.r2.avgRating-a.r1.avgRating))[0];
+  const mostDeclined=matched.sort((a,b)=>(a.r2.avgRating-a.r1.avgRating)-(b.r2.avgRating-b.r1.avgRating))[0];
+  const totDelta=delta(s1.tot,s2.tot);
+  const summary=buildSummary(s1,s2,n1,n2,totDelta,matched.length,only1.length,only2.length,bestImproved,mostDeclined);
+
+  /* ── Render ── */
+  document.getElementById('results').innerHTML=`
+
+    <!-- KPIs -->
+    <div class="card">
+      <div class="card-hdr">
+        <div class="card-hdr-l">
+          <div class="card-icon">📊</div>
+          <div><div class="card-title">مقارنة إجمالية — ${n1} مقابل ${n2}</div>
+            <div class="card-sub">${p1f} — ${p1t} &nbsp;|&nbsp; ${p2f} — ${p2t}</div>
+          </div>
+        </div>
+        <div class="legend-row">
+          <div class="leg"><div class="leg-dot" style="background:${C1}"></div>${n1}</div>
+          <div class="leg"><div class="leg-dot" style="background:${C2}"></div>${n2}</div>
+        </div>
+      </div>
+      ${kpiHtml}
+      <div class="sum-bar">
+        <div class="sum-icon">💡</div>
+        <div class="sum-txt">${summary}</div>
+      </div>
+    </div>
+
+    <!-- Operational + Problems -->
+    <div class="two-col">
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-hdr-l">
+            <div class="card-icon" style="background:${C1}">📈</div>
+            <div><div class="card-title">التقييم التشغيلي</div></div>
+          </div>
+          <div class="legend-row">
+            <div class="leg"><div class="leg-dot" style="background:${C1}"></div>${n1}</div>
+            <div class="leg"><div class="leg-dot" style="background:${C2}"></div>${n2}</div>
+          </div>
+        </div>
+        ${opRows}
+      </div>
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-hdr-l">
+            <div class="card-icon" style="background:#d97706">⚠️</div>
+            <div><div class="card-title">مستوى المشاكل</div></div>
+          </div>
+          <div class="legend-row">
+            <div class="leg"><div class="leg-dot" style="background:${C1}80"></div>${n1}</div>
+            <div class="leg"><div class="leg-dot" style="background:${C2}80"></div>${n2}</div>
+          </div>
+        </div>
+        ${probRows}
+      </div>
+    </div>
+
+    <!-- Depts -->
+    <div class="card">
+      <div class="card-hdr">
+        <div class="card-hdr-l">
+          <div class="card-icon" style="background:var(--ac)">🏢</div>
+          <div><div class="card-title">مقارنة الأقسام</div></div>
+        </div>
+        <div class="legend-row">
+          <div class="leg"><div class="leg-dot" style="background:${C1}"></div>${n1}</div>
+          <div class="leg"><div class="leg-dot" style="background:${C2}"></div>${n2}</div>
+          <div class="leg" style="color:var(--mu);font-size:.6rem;">↑↓ = التغيير</div>
+        </div>
+      </div>
+      ${deptRows||'<div class="empty">لا توجد بيانات للمقارنة</div>'}
+    </div>
+
+    <!-- Employee Matching -->
+    <div class="card">
+      <div class="card-hdr">
+        <div class="card-hdr-l">
+          <div class="card-icon" style="background:var(--pu,#7c3aed)">👤</div>
+          <div>
+            <div class="card-title">مقارنة الموظفين</div>
+            <div class="card-sub">
+              ${matched.length} موظف شارك في الجولتين •
+              ${only1.length} فقط في ${n1} •
+              ${only2.length} فقط في ${n2}
+            </div>
+          </div>
+        </div>
+      </div>
+      ${matched.length?`
+      <div style="overflow-x:auto;">
+        <table class="emp-table">
+          <thead>
+            <tr>
+              <th>الموظف</th><th>القسم</th>
+              <th style="color:${C1}">${n1}</th>
+              <th style="color:${C2}">${n2}</th>
+              <th>التغيير</th>
+            </tr>
+          </thead>
+          <tbody>${empRows}</tbody>
+        </table>
+      </div>`:'<div class="empty">⚠️ لا يوجد موظفون بنفس الاسم في الفترتين — تأكد أن الأسماء موحدة</div>'}
+    </div>`;
+}
+
+function kpiCard(label,v1,v2,sub1,sub2,isScore){
+  const dv=delta(isScore?v1:null,isScore?v2:null);
+  const fmt=v=>isScore?v.toFixed(1):v;
+  return`<div class="kpi-c">
+    <div class="kpi-c-label">${label}</div>
+    <div class="kpi-c-vals">
+      <div><div class="kpi-val" style="color:${C1}">${fmt(v1)}</div><div class="kpi-sub" style="color:${C1}">${sub1}</div></div>
+      <div style="font-size:.65rem;color:var(--mu);align-self:center;">→</div>
+      <div><div class="kpi-val" style="color:${C2}">${fmt(v2)}</div><div class="kpi-sub" style="color:${C2}">${sub2}</div></div>
+    </div>
+    ${dv!=null?`<div class="kpi-delta ${dv>0.04?'delta-up':dv<-0.04?'delta-down':'delta-same'}">${dv>0?'+':''}${dv.toFixed(1)}</div>`:''}
+  </div>`;
+}
+
+function buildSummary(s1,s2,n1,n2,totDelta,matchedN,only1N,only2N,best,worst){
+  let txt='';
+  // Overall trend
+  if(totDelta>0.1) txt+=`تحسّن التقييم التشغيلي من <span class="dn">${s1.tot.toFixed(1)}</span> إلى <strong class="up">${s2.tot.toFixed(1)}/5</strong> (+${totDelta.toFixed(1)}). `;
+  else if(totDelta<-0.1) txt+=`تراجع التقييم التشغيلي من <span class="up">${s1.tot.toFixed(1)}</span> إلى <strong class="dn">${s2.tot.toFixed(1)}/5</strong> (${totDelta.toFixed(1)}). `;
+  else txt+=`بقي التقييم التشغيلي مستقراً عند <strong>${s2.tot.toFixed(1)}/5</strong>. `;
+  // Participation
+  txt+=`المشاركة: <strong>${s1.n}</strong> موظف في ${n1} مقابل <strong>${s2.n}</strong> موظف في ${n2}. `;
+  // Employee tracking
+  if(matchedN>0){
+    txt+=`تتبّعنا <strong>${matchedN}</strong> موظف شارك في الجولتين. `;
+    if(best){
+      const d=+(best.r2.avgRating-best.r1.avgRating).toFixed(1);
+      if(d>0) txt+=`أكبر تحسّن: <strong>${best.name}</strong> (+${d}). `;
+    }
+  } else {
+    txt+=`⚠️ لم يُعثر على موظفين بنفس الاسم — تأكد من توحيد الأسماء للحصول على مقارنة فردية. `;
+  }
+  return txt;
+}
+
+async function copyAsImage(){
+  const el=document.getElementById('results');
+  const canvas=await html2canvas(el,{scale:2,useCORS:true,backgroundColor:'#dde1ea',logging:false});
+  canvas.toBlob(async blob=>{
+    try{
+      await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);
+      alert('✅ تم نسخ الصورة');
+    }catch{
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');a.href=url;a.download='comparison.png';a.click();
+      URL.revokeObjectURL(url);
+    }
+  },'image/png');
+}
+</script>
+</body>
+</html>
