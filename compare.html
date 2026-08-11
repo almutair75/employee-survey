@@ -137,6 +137,8 @@ body{font-family:'Cairo',sans-serif;color:var(--tx);background:#dde1ea;direction
 .sum-txt .up{color:#059669;font-weight:800;}
 .sum-txt .dn{color:#dc2626;font-weight:800;}
 
+.btn-lang{background:#f0f4ff;color:var(--pr);border-color:#c7d7f9;font-weight:800;}
+
 .loading{text-align:center;padding:2rem;color:var(--mu);font-size:.82rem;}
 .empty{text-align:center;padding:1.5rem;color:var(--mu);font-size:.75rem;
   border:1.5px dashed var(--bd);border-radius:8px;background:#fafafa;}
@@ -161,10 +163,11 @@ body{font-family:'Cairo',sans-serif;color:var(--tx);background:#dde1ea;direction
     </div>
   </div>
   <div class="tb-actions">
+    <button class="btn btn-lang" id="btn-lang" onclick="toggleLang()">English</button>
     <button class="btn btn-pr" onclick="runCompare()" id="btn-run">🔍 تشغيل المقارنة</button>
     <button class="btn btn-ol" onclick="copyAsImage()">📸 نسخ كصورة</button>
     <button class="btn btn-ol" onclick="window.print()">🖨️ طباعة</button>
-    <a href="dashboard.html" class="btn btn-ol">← رجوع</a>
+    <a href="dashboard.html" class="btn btn-ol" id="btn-back">← رجوع</a>
   </div>
 </div>
 
@@ -204,6 +207,103 @@ body{font-family:'Cairo',sans-serif;color:var(--tx);background:#dde1ea;direction
 </div>
 
 <script>
+/* ── Language ── */
+let lang='ar';
+const T={
+  ar:{
+    title:'مقارنة الفترات — استبيان Odoo',sub:'قارن نتائج جولتين من الاستبيان',
+    btnRun:'🔍 تشغيل المقارنة',btnRun2:'🔍 مقارنة',btnBack:'← رجوع',
+    p1Label:'الفترة الأولى',p2Label:'الفترة الثانية',
+    from:'من:',to:'إلى:',p1Name:'الجولة الأولى',p2Name:'الجولة الثانية',namePh:'اسم الجولة',
+    loading:'حدد الفترتين أعلاه واضغط <strong>تشغيل المقارنة</strong>',
+    noDate:'⚠️ يرجى تحديد تواريخ الفترتين كاملة',
+    noData1:n=>`⚠️ لا توجد بيانات في ${n}`,
+    errLoad:'❌ خطأ في تحميل البيانات',
+    participants:'المشاركون',opScore:'التقييم التشغيلي',sat:'الرضا العام',depts:'الأقسام',
+    empSub:(m,o1,o2,n1,n2)=>`${m} موظف شارك في الجولتين • ${o1} فقط في ${n1} • ${o2} فقط في ${n2}`,
+    empName:'الموظف',empDept:'القسم',empChange:'التغيير',
+    noMatch:'⚠️ لا يوجد موظفون بنفس الاسم في الفترتين — تأكد من توحيد الأسماء للحصول على مقارنة فردية.',
+    opTitle:'التقييم التشغيلي',probTitle:'مستوى المشاكل',deptTitle:'مقارنة الأقسام',
+    empTitle:'مقارنة الموظفين',kpiUnit:'موظف',kpiDept:'قسم',
+    OPL:['سهولة الاستخدام','وضوح الشاشات','سرعة النظام','دقة البيانات','سهولة الوصول','توافق العمل','الرضا العام'],
+    PRS:{1:'كثيرة جداً',2:'كثيرة',3:'متوسطة',4:'قليلة',5:'لا توجد'},
+    sl:v=>v>=4?'جيد':v>=3?'متوسط':v>=2?'ضعيف':'ضعيف جداً',
+    sumImproved:(d)=>`تحسّن التقييم التشغيلي بمقدار <span class="up">+${d}</span>. `,
+    sumDeclined:(d)=>`تراجع التقييم التشغيلي بمقدار <span class="dn">${d}</span>. `,
+    sumStable:'بقي التقييم التشغيلي مستقراً. ',
+    sumParticipation:(n1,r1,n2,r2)=>`المشاركة: <strong>${r1}</strong> موظف في ${n1} مقابل <strong>${r2}</strong> موظف في ${n2}. `,
+    sumMatched:(n)=>`تتبّعنا <strong>${n}</strong> موظف شارك في الجولتين. `,
+    sumBest:(name,d)=>`أكبر تحسّن: <strong>${name}</strong> (+${d}). `,
+    sumNoMatch:'⚠️ لم يُعثر على موظفين بنفس الاسم — تأكد من توحيد الأسماء للحصول على مقارنة فردية. ',
+    dir:'rtl',locale:'ar-SA',
+  },
+  en:{
+    title:'Period Comparison — Odoo Survey',sub:'Compare results across two survey rounds',
+    btnRun:'🔍 Run Comparison',btnRun2:'🔍 Compare',btnBack:'Back →',
+    p1Label:'Period 1',p2Label:'Period 2',
+    from:'From:',to:'To:',p1Name:'Round 1',p2Name:'Round 2',namePh:'Round name',
+    loading:'Select both periods above and click <strong>Run Comparison</strong>',
+    noDate:'⚠️ Please select dates for both periods',
+    noData1:n=>`⚠️ No data found for ${n}`,
+    errLoad:'❌ Error loading data',
+    participants:'Participants',opScore:'Operational Score',sat:'Satisfaction',depts:'Departments',
+    empSub:(m,o1,o2,n1,n2)=>`${m} employees in both rounds • ${o1} only in ${n1} • ${o2} only in ${n2}`,
+    empName:'Employee',empDept:'Department',empChange:'Change',
+    noMatch:'⚠️ No employees found with matching names — ensure names are consistent between rounds.',
+    opTitle:'Operational Rating',probTitle:'Problem Level',deptTitle:'Department Comparison',
+    empTitle:'Employee Comparison',kpiUnit:'employees',kpiDept:'depts',
+    OPL:['Ease of Use','Screen Clarity','System Speed','Data Accuracy','Access Ease','Workflow Fit','Satisfaction'],
+    PRS:{1:'Very Many',2:'Many',3:'Moderate',4:'Few',5:'None'},
+    sl:v=>v>=4?'Good':v>=3?'Average':v>=2?'Poor':'Very Poor',
+    sumImproved:(d)=>`Operational score improved by <span class="up">+${d}</span>. `,
+    sumDeclined:(d)=>`Operational score declined by <span class="dn">${d}</span>. `,
+    sumStable:'Operational score remained stable. ',
+    sumParticipation:(n1,r1,n2,r2)=>`Participation: <strong>${r1}</strong> employees in ${n1} vs <strong>${r2}</strong> in ${n2}. `,
+    sumMatched:(n)=>`Tracked <strong>${n}</strong> employees who participated in both rounds. `,
+    sumBest:(name,d)=>`Most improved: <strong>${name}</strong> (+${d}). `,
+    sumNoMatch:'⚠️ No matching employee names found — ensure names are consistent for individual tracking. ',
+    dir:'ltr',locale:'en-GB',
+  }
+};
+
+function toggleLang(){
+  lang=lang==='ar'?'en':'ar';
+  applyLang();
+  // Re-run if results already exist
+  if(document.querySelector('.card .card-title')) runCompare();
+}
+
+function applyLang(){
+  const t=T[lang];
+  document.documentElement.setAttribute('dir',t.dir);
+  document.documentElement.setAttribute('lang',lang);
+  document.body.style.fontFamily=lang==='ar'?"'Cairo',sans-serif":"'Inter',sans-serif";
+  document.body.style.direction=t.dir;
+  document.getElementById('btn-lang').textContent=lang==='ar'?'English':'العربية';
+  document.getElementById('btn-run').textContent=t.btnRun;
+  document.getElementById('btn-back').textContent=t.btnBack;
+  // Period box labels
+  const p1lbl=document.querySelector('.period-box.p1 .period-label');
+  const p2lbl=document.querySelector('.period-box.p2 .period-label');
+  if(p1lbl) p1lbl.lastChild.textContent=' '+t.p1Label;
+  if(p2lbl) p2lbl.lastChild.textContent=' '+t.p2Label;
+  // From/To labels
+  const labels=document.querySelectorAll('.period-fields label');
+  if(labels[0]) labels[0].textContent=t.from;
+  if(labels[1]) labels[1].textContent=t.to;
+  if(labels[2]) labels[2].textContent=t.from;
+  if(labels[3]) labels[3].textContent=t.to;
+  // Placeholders and defaults
+  const p1name=document.getElementById('p1-name');
+  const p2name=document.getElementById('p2-name');
+  if(p1name){ p1name.placeholder=t.namePh; if(!p1name.dataset.edited) p1name.value=t.p1Name; }
+  if(p2name){ p2name.placeholder=t.namePh; if(!p2name.dataset.edited) p2name.value=t.p2Name; }
+  // Loading message
+  const res=document.getElementById('results');
+  if(res&&res.querySelector('.loading'))
+    res.innerHTML=`<div class="card"><div class="loading">${t.loading}</div></div>`;
+}
+
 /* ── Firebase ── */
 const FB=firebase.initializeApp({
   apiKey:"AIzaSyAK2-UBMDtyvkPGRGXJLXIq311U4N32fVo",
@@ -259,7 +359,7 @@ async function runCompare(){
   const btn=document.getElementById('btn-run');
   btn.textContent='⏳ جاري...'; btn.disabled=true;
   const res=document.getElementById('results');
-  res.innerHTML='<div class="card"><div class="loading">⏳ جاري تحميل وتحليل البيانات...</div></div>';
+  res.innerHTML=`<div class="card"><div class="loading">⏳ ${lang==='ar'?'جاري تحميل وتحليل البيانات':'Loading and analyzing data'}...</div></div>`;
 
   try{
     const all=await loadAll();
@@ -271,7 +371,7 @@ async function runCompare(){
     const n2=document.getElementById('p2-name').value||'الجولة الثانية';
 
     if(!p1f||!p1t||!p2f||!p2t){
-      res.innerHTML='<div class="card"><div class="empty">⚠️ يرجى تحديد تواريخ الفترتين كاملة</div></div>';
+      res.innerHTML=`<div class="card"><div class="empty">${T[lang].noDate}</div></div>`;
       btn.textContent='🔍 تشغيل المقارنة'; btn.disabled=false;
       return;
     }
@@ -280,7 +380,7 @@ async function runCompare(){
     const d2=filterByPeriod(all,p2f,p2t);
 
     if(!d1.length||!d2.length){
-      res.innerHTML=`<div class="card"><div class="empty">⚠️ ${!d1.length?`لا توجد بيانات في ${n1}`:`لا توجد بيانات في ${n2}`}</div></div>`;
+      res.innerHTML=`<div class="card"><div class="empty">${T[lang].noData1(!d1.length?n1:n2)}</div></div>`;
       btn.textContent='🔍 تشغيل المقارنة'; btn.disabled=false;
       return;
     }
@@ -288,7 +388,7 @@ async function runCompare(){
     render(d1,d2,n1,n2,p1f,p1t,p2f,p2t);
   }catch(e){
     console.error(e);
-    res.innerHTML='<div class="card"><div class="loading">❌ خطأ في تحميل البيانات</div></div>';
+    res.innerHTML=`<div class="card"><div class="loading">${T[lang].errLoad}</div></div>`;
   }
   btn.textContent='🔍 تشغيل المقارنة'; btn.disabled=false;
 }
@@ -324,17 +424,18 @@ function deltaPill(d){
 function render(d1,d2,n1,n2,p1f,p1t,p2f,p2t){
   const s1=calcStats(d1), s2=calcStats(d2);
 
+  const t=T[lang];
   /* ── KPI Cards ── */
   const kpiHtml=`
     <div class="kpi-cmp">
-      ${kpiCard('المشاركون',s1.n,s2.n,'موظف','موظف',false)}
-      ${kpiCard('التقييم التشغيلي',s1.tot,s2.tot,'/5','/5',true)}
-      ${kpiCard('الرضا العام',s1.sat,s2.sat,'/5','/5',true)}
-      ${kpiCard('الأقسام المشاركة',Object.keys(s1.depts).length,Object.keys(s2.depts).length,'قسم','قسم',false)}
+      ${kpiCard(t.participants,s1.n,s2.n,t.kpiUnit,t.kpiUnit,false)}
+      ${kpiCard(t.opScore,s1.tot,s2.tot,'/5','/5',true)}
+      ${kpiCard(t.sat,s1.sat,s2.sat,'/5','/5',true)}
+      ${kpiCard(t.depts,Object.keys(s1.depts).length,Object.keys(s2.depts).length,t.kpiDept,t.kpiDept,false)}
     </div>`;
 
   /* ── Operational Comparison ── */
-  const opRows=OPL.map((l,i)=>{
+  const opRows=t.OPL.map((l,i)=>{
     const v1=s1.opA[i], v2=s2.opA[i];
     const p1=(v1?v1/5*100:0).toFixed(0), p2=(v2?v2/5*100:0).toFixed(0);
     const d=delta(v1,v2);
@@ -360,7 +461,7 @@ function render(d1,d2,n1,n2,p1f,p1t,p2f,p2t){
     const w1=s1.n?(c1/s1.n*100).toFixed(1):0;
     const w2=s2.n?(c2/s2.n*100).toFixed(1):0;
     return`<div class="prob-row">
-      <div class="prob-label" style="color:${PRC[v]}">${PRS[v]}</div>
+      <div class="prob-label" style="color:${PRC[v]}">${t.PRS[v]}</div>
       <div class="prob-bars">
         <div class="prob-bar-wrap">
           <div class="prob-track"><div class="prob-fill" style="width:${w1}%;background:${C1}80"></div></div>
@@ -444,7 +545,7 @@ function render(d1,d2,n1,n2,p1f,p1t,p2f,p2t){
       <div class="card-hdr">
         <div class="card-hdr-l">
           <div class="card-icon">📊</div>
-          <div><div class="card-title">مقارنة إجمالية — ${n1} مقابل ${n2}</div>
+          <div><div class="card-title">${lang==='ar'?'مقارنة إجمالية':'Overall Comparison'} — ${n1} ${lang==='ar'?'مقابل':'vs'} ${n2}</div>
             <div class="card-sub">${p1f} — ${p1t} &nbsp;|&nbsp; ${p2f} — ${p2t}</div>
           </div>
         </div>
@@ -466,7 +567,7 @@ function render(d1,d2,n1,n2,p1f,p1t,p2f,p2t){
         <div class="card-hdr">
           <div class="card-hdr-l">
             <div class="card-icon" style="background:${C1}">📈</div>
-            <div><div class="card-title">التقييم التشغيلي</div></div>
+            <div><div class="card-title">${t.opTitle}</div></div>
           </div>
           <div class="legend-row">
             <div class="leg"><div class="leg-dot" style="background:${C1}"></div>${n1}</div>
@@ -479,7 +580,7 @@ function render(d1,d2,n1,n2,p1f,p1t,p2f,p2t){
         <div class="card-hdr">
           <div class="card-hdr-l">
             <div class="card-icon" style="background:#d97706">⚠️</div>
-            <div><div class="card-title">مستوى المشاكل</div></div>
+            <div><div class="card-title">${t.probTitle}</div></div>
           </div>
           <div class="legend-row">
             <div class="leg"><div class="leg-dot" style="background:${C1}80"></div>${n1}</div>
@@ -495,15 +596,15 @@ function render(d1,d2,n1,n2,p1f,p1t,p2f,p2t){
       <div class="card-hdr">
         <div class="card-hdr-l">
           <div class="card-icon" style="background:var(--ac)">🏢</div>
-          <div><div class="card-title">مقارنة الأقسام</div></div>
+          <div><div class="card-title">${t.deptTitle}</div></div>
         </div>
         <div class="legend-row">
           <div class="leg"><div class="leg-dot" style="background:${C1}"></div>${n1}</div>
           <div class="leg"><div class="leg-dot" style="background:${C2}"></div>${n2}</div>
-          <div class="leg" style="color:var(--mu);font-size:.6rem;">↑↓ = التغيير</div>
+          <div class="leg" style="color:var(--mu);font-size:.6rem;">↑↓ = ${lang==='ar'?'التغيير':'Change'}</div>
         </div>
       </div>
-      ${deptRows||'<div class="empty">لا توجد بيانات للمقارنة</div>'}
+      ${deptRows||`<div class="empty">${lang==='ar'?'لا توجد بيانات للمقارنة':'No data to compare'}</div>`}
     </div>
 
     <!-- Employee Matching -->
@@ -512,11 +613,9 @@ function render(d1,d2,n1,n2,p1f,p1t,p2f,p2t){
         <div class="card-hdr-l">
           <div class="card-icon" style="background:var(--pu,#7c3aed)">👤</div>
           <div>
-            <div class="card-title">مقارنة الموظفين</div>
+            <div class="card-title">${t.empTitle}</div>
             <div class="card-sub">
-              ${matched.length} موظف شارك في الجولتين •
-              ${only1.length} فقط في ${n1} •
-              ${only2.length} فقط في ${n2}
+              ${t.empSub(matched.length,only1.length,only2.length,n1,n2)}
             </div>
           </div>
         </div>
@@ -526,15 +625,15 @@ function render(d1,d2,n1,n2,p1f,p1t,p2f,p2t){
         <table class="emp-table">
           <thead>
           <tr>
-            <th>الموظف</th><th>القسم</th>
+            <th>${t.empName}</th><th>${t.empDept}</th>
             <th style="color:${C1};min-width:50px">${n1}</th>
             <th style="color:${C2};min-width:50px">${n2}</th>
-            <th style="min-width:50px">التغيير</th>
+            <th style="min-width:50px">${t.empChange}</th>
           </tr>
         </thead>
           <tbody>${empRows}</tbody>
         </table>
-      </div>`:'<div class="empty">⚠️ لا يوجد موظفون بنفس الاسم في الفترتين — تأكد أن الأسماء موحدة</div>'}
+      </div>`:`<div class="empty">${t.noMatch}</div>`}
     </div>`;
 }
 
@@ -553,22 +652,20 @@ function kpiCard(label,v1,v2,sub1,sub2,isScore){
 }
 
 function buildSummary(s1,s2,n1,n2,totDelta,matchedN,only1N,only2N,best,worst){
+  const t=T[lang];
   let txt='';
-  // Overall trend
-  if(totDelta>0.1) txt+=`تحسّن التقييم التشغيلي من <span class="dn">${s1.tot.toFixed(1)}</span> إلى <strong class="up">${s2.tot.toFixed(1)}/5</strong> (+${totDelta.toFixed(1)}). `;
-  else if(totDelta<-0.1) txt+=`تراجع التقييم التشغيلي من <span class="up">${s1.tot.toFixed(1)}</span> إلى <strong class="dn">${s2.tot.toFixed(1)}/5</strong> (${totDelta.toFixed(1)}). `;
-  else txt+=`بقي التقييم التشغيلي مستقراً عند <strong>${s2.tot.toFixed(1)}/5</strong>. `;
-  // Participation
-  txt+=`المشاركة: <strong>${s1.n}</strong> موظف في ${n1} مقابل <strong>${s2.n}</strong> موظف في ${n2}. `;
-  // Employee tracking
+  if(totDelta>0.1)       txt+=t.sumImproved(totDelta.toFixed(1));
+  else if(totDelta<-0.1) txt+=t.sumDeclined(Math.abs(totDelta).toFixed(1));
+  else                   txt+=t.sumStable;
+  txt+=t.sumParticipation(n1,s1.n,n2,s2.n);
   if(matchedN>0){
-    txt+=`تتبّعنا <strong>${matchedN}</strong> موظف شارك في الجولتين. `;
+    txt+=t.sumMatched(matchedN);
     if(best){
       const d=+(best.r2.avgRating-best.r1.avgRating).toFixed(1);
-      if(d>0) txt+=`أكبر تحسّن: <strong>${best.name}</strong> (+${d}). `;
+      if(d>0) txt+=t.sumBest(best.name,d);
     }
   } else {
-    txt+=`⚠️ لم يُعثر على موظفين بنفس الاسم — تأكد من توحيد الأسماء للحصول على مقارنة فردية. `;
+    txt+=t.sumNoMatch;
   }
   return txt;
 }
