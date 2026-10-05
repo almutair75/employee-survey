@@ -14,13 +14,13 @@
 
   <!-- Aurora Canvas -->
   <canvas id="aurora-canvas" style="
-    position:absolute;inset:0;width:100%;height:100%;
-    pointer-events:none;z-index:0;opacity:0.9;
+    position:absolute;top:0;left:0;
+    pointer-events:none;z-index:0;
   "></canvas>
 
   <div class="lang-select-card">
     <div class="brand-logo">
-      <img src="GIFTMART_LOGO.png" alt="Gift Mart" style="width:180px;height:auto;" />
+      <img src="giftmart-logo-white.png" alt="Gift Mart" style="width:180px;height:auto;" />
     </div>
     <div class="lang-select-title-ar">استبيان تقييم استخدام نظام Odoo</div>
     <div class="lang-select-title-en">Odoo Usage Evaluation Survey</div>
@@ -233,12 +233,18 @@
   if(!canvas) return;
   const ctx = canvas.getContext('2d');
   const isMobile = window.innerWidth < 768;
+  const dpr = devicePixelRatio || 1;
 
-  /* Resize */
+  /* Resize — match parent page-lang div */
   function resize(){
-    canvas.width  = canvas.offsetWidth  * devicePixelRatio;
-    canvas.height = canvas.offsetHeight * devicePixelRatio;
-    ctx.scale(devicePixelRatio, devicePixelRatio);
+    const parent = canvas.parentElement;
+    const w = parent.offsetWidth;
+    const h = parent.offsetHeight || window.innerHeight;
+    canvas.style.width  = w + 'px';
+    canvas.style.height = h + 'px';
+    canvas.width  = w * dpr;
+    canvas.height = h * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
   resize();
   window.addEventListener('resize', resize);
@@ -257,8 +263,8 @@
 
   /* ── Particles ── */
   const PCOUNT = isMobile ? 20 : 35;
-  const W = ()=> canvas.offsetWidth;
-  const H = ()=> canvas.offsetHeight;
+  const W = ()=> canvas.width / dpr;
+  const H = ()=> canvas.height / dpr;
 
   function mkParticle(){
     return {
@@ -278,7 +284,7 @@
   /* ── Render ── */
   let t = 0;
   function draw(){
-    const w = canvas.offsetWidth, h = canvas.offsetHeight;
+    const w = W(), h = H();
     ctx.clearRect(0, 0, w, h);
 
     if(!reduced){
