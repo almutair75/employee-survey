@@ -5,8 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>استبيان تقييم نظام Odoo</title>
   <link rel="stylesheet" href="css/style.css" />
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
 </head>
 <body class="lang-ar">
@@ -14,7 +12,9 @@
 <!-- A) LANGUAGE SELECTION -->
 <div id="page-lang" class="lang-select-page">
   <div class="lang-select-card">
-    <div class="brand-logo"><i class="bi bi-bar-chart-line"></i></div>
+    <div class="brand-logo">
+      <img src="GIFTMART_LOGO.svg" alt="Gift Mart" style="width:160px;height:auto;" />
+    </div>
     <div class="lang-select-title-ar">استبيان تقييم استخدام نظام Odoo</div>
     <div class="lang-select-title-en">Odoo Usage Evaluation Survey</div>
 
@@ -38,13 +38,13 @@
           <div style="font-size:0.65rem;color:#9ca3af;margin-bottom:0.2rem;">
             يفتح / Opens
           </div>
-          <div id="period-open" style="font-size:0.82rem;font-weight:700;color:#059669;direction:ltr;unicode-bidi:embed;"></div>
+          <div id="period-open" style="font-size:0.82rem;font-weight:700;color:#059669;"></div>
         </div>
         <div style="background:white;border-radius:8px;padding:0.5rem;border:1px solid #fecaca;">
           <div style="font-size:0.65rem;color:#9ca3af;margin-bottom:0.2rem;">
             يُغلق / Closes
           </div>
-          <div id="period-close" style="font-size:0.82rem;font-weight:700;color:#059669;direction:ltr;unicode-bidi:embed;"></div>
+          <div id="period-close" style="font-size:0.82rem;font-weight:700;color:#dc2626;"></div>
         </div>
       </div>
       <div id="period-round" style="text-align:center;font-size:0.72rem;color:#6b7280;
@@ -72,11 +72,7 @@
   <header class="survey-header">
     <div class="survey-header-inner">
       <div class="survey-brand">
-        <div class="survey-brand-icon"><i class="bi bi-bar-chart-line"></i></div>
-        <div class="survey-brand-text">
-          <h2 id="hdr-title">استبيان تقييم نظام Odoo</h2>
-          <p id="hdr-sub">تقييم تجربة الموظفين</p>
-        </div>
+        <img src="giftmart-logo-white.svg" alt="Gift Mart" class="survey-brand-logo" />
       </div>
       <button class="lang-toggle-btn" onclick="toggleLanguage()">
         <i class="bi bi-translate"></i>
@@ -221,6 +217,8 @@
 </div>
 
 <div class="toast" id="toast"></div>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>
