@@ -71,20 +71,67 @@ p { color: var(--text-secondary); }
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #f0f4ff 0%, #e8f5fe 50%, #f0fdf4 100%);
+  background: #1a1228;
   padding: 2rem;
   font-family: var(--font-en);
+  position: relative;
+  overflow: hidden;
+}
+
+/* ── Animated background lines ── */
+.lang-select-page::before {
+  content: '';
+  position: absolute;
+  inset: -50%;
+  width: 200%;
+  height: 200%;
+  background:
+    repeating-linear-gradient(
+      60deg,
+      transparent,
+      transparent 60px,
+      rgba(128, 54, 88, 0.08) 60px,
+      rgba(128, 54, 88, 0.08) 61px
+    ),
+    repeating-linear-gradient(
+      -60deg,
+      transparent,
+      transparent 60px,
+      rgba(62, 55, 85, 0.12) 60px,
+      rgba(62, 55, 85, 0.12) 61px
+    );
+  animation: bgMove 18s linear infinite;
+  pointer-events: none;
+}
+
+.lang-select-page::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at 50% 50%,
+    rgba(128, 54, 88, 0.15) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+@keyframes bgMove {
+  0%   { transform: translate(0, 0); }
+  100% { transform: translate(61px, 61px); }
 }
 
 .lang-select-card {
+  position: relative;
+  z-index: 1;
   background: var(--bg-white);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 4px 16px rgba(128,54,88,0.2);
   padding: 3rem 2.5rem;
   text-align: center;
   max-width: 520px;
   width: 100%;
-  border: 1px solid rgba(128, 54, 88, 0.08);
+  border: 1px solid rgba(128, 54, 88, 0.15);
 }
 
 .brand-logo {
