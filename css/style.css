@@ -341,8 +341,8 @@ p { color: var(--text-secondary); }
 
 .card-header {
   padding: 1rem 1.5rem;
-  border-bottom: 1px solid #edd9e3;
-  background: #f8f0f4;
+  border-bottom: 1px solid #e4dff0;
+  background: #f0ecf8;
   display: flex;
   align-items: center;
   gap: 0.75rem;
