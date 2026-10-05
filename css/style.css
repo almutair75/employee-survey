@@ -85,13 +85,13 @@ p { color: var(--text-secondary); }
   position: absolute;
   width: 700px; height: 700px;
   border-radius: 50%;
-  background: radial-gradient(circle at 40% 40%,
-    rgba(107,63,160,0.22) 0%,
-    rgba(107,63,160,0.08) 40%,
+  background: radial-gradient(circle,
+    rgba(107,63,160,0.35) 0%,
+    rgba(107,63,160,0.12) 40%,
     transparent 70%);
-  filter: blur(90px);
-  top: -180px; left: -160px;
-  animation: aurora1 28s ease-in-out infinite;
+  filter: blur(80px);
+  top: -200px; left: -180px;
+  animation: aurora1 26s ease-in-out infinite;
   pointer-events: none;
   will-change: transform;
 }
@@ -100,35 +100,120 @@ p { color: var(--text-secondary); }
 .lang-select-page::after {
   content: '';
   position: absolute;
-  width: 600px; height: 600px;
+  width: 620px; height: 620px;
   border-radius: 50%;
-  background: radial-gradient(circle at 60% 60%,
-    rgba(212,162,76,0.18) 0%,
-    rgba(212,162,76,0.06) 40%,
+  background: radial-gradient(circle,
+    rgba(212,162,76,0.28) 0%,
+    rgba(212,162,76,0.08) 40%,
     transparent 70%);
-  filter: blur(100px);
-  bottom: -160px; right: -120px;
-  animation: aurora2 24s ease-in-out infinite;
+  filter: blur(90px);
+  bottom: -160px; right: -140px;
+  animation: aurora2 22s ease-in-out infinite;
   pointer-events: none;
   will-change: transform;
 }
 
+/* ── Aurora Orb 3 — rose (CSS class) ── */
+.aurora-orb-3 {
+  position: absolute;
+  width: 500px; height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    rgba(128,54,88,0.3) 0%,
+    rgba(128,54,88,0.08) 45%,
+    transparent 70%);
+  filter: blur(70px);
+  top: 40%; right: -100px;
+  animation: aurora3 30s ease-in-out infinite;
+  pointer-events: none;
+  will-change: transform;
+  z-index: 0;
+}
+
+/* ── Wavy lines (SVG background) ── */
+.lang-select-page {
+  --wave-anim: waveMove 20s linear infinite;
+}
+
+/* ── Particles ── */
+.aurora-particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.aurora-particles span {
+  position: absolute;
+  display: block;
+  border-radius: 50%;
+  background: rgba(212,162,76,0.5);
+  animation: particleRise linear infinite;
+  will-change: transform, opacity;
+}
+
+/* 25 particles with different sizes/positions/durations */
+.aurora-particles span:nth-child(1)  { width:2px;height:2px; left:8%;  animation-duration:18s; animation-delay:0s;   bottom:-5px; }
+.aurora-particles span:nth-child(2)  { width:1px;height:1px; left:15%; animation-duration:22s; animation-delay:2s;   bottom:-5px; background:rgba(180,140,255,0.5); }
+.aurora-particles span:nth-child(3)  { width:2px;height:2px; left:23%; animation-duration:16s; animation-delay:4s;   bottom:-5px; }
+.aurora-particles span:nth-child(4)  { width:1px;height:1px; left:31%; animation-duration:25s; animation-delay:1s;   bottom:-5px; background:rgba(180,140,255,0.4); }
+.aurora-particles span:nth-child(5)  { width:2px;height:2px; left:40%; animation-duration:20s; animation-delay:6s;   bottom:-5px; }
+.aurora-particles span:nth-child(6)  { width:1px;height:1px; left:49%; animation-duration:17s; animation-delay:3s;   bottom:-5px; background:rgba(180,140,255,0.6); }
+.aurora-particles span:nth-child(7)  { width:2px;height:2px; left:57%; animation-duration:23s; animation-delay:5s;   bottom:-5px; }
+.aurora-particles span:nth-child(8)  { width:1px;height:1px; left:65%; animation-duration:19s; animation-delay:7s;   bottom:-5px; background:rgba(180,140,255,0.3); }
+.aurora-particles span:nth-child(9)  { width:2px;height:2px; left:73%; animation-duration:21s; animation-delay:2s;   bottom:-5px; }
+.aurora-particles span:nth-child(10) { width:1px;height:1px; left:81%; animation-duration:26s; animation-delay:8s;   bottom:-5px; background:rgba(180,140,255,0.5); }
+.aurora-particles span:nth-child(11) { width:2px;height:2px; left:89%; animation-duration:15s; animation-delay:1s;   bottom:-5px; }
+.aurora-particles span:nth-child(12) { width:1px;height:1px; left:5%;  animation-duration:24s; animation-delay:9s;   bottom:-5px; background:rgba(212,162,76,0.3); }
+.aurora-particles span:nth-child(13) { width:2px;height:2px; left:19%; animation-duration:18s; animation-delay:11s;  bottom:-5px; }
+.aurora-particles span:nth-child(14) { width:1px;height:1px; left:35%; animation-duration:29s; animation-delay:4s;   bottom:-5px; background:rgba(180,140,255,0.4); }
+.aurora-particles span:nth-child(15) { width:2px;height:2px; left:52%; animation-duration:20s; animation-delay:13s;  bottom:-5px; }
+.aurora-particles span:nth-child(16) { width:1px;height:1px; left:66%; animation-duration:16s; animation-delay:6s;   bottom:-5px; background:rgba(212,162,76,0.6); }
+.aurora-particles span:nth-child(17) { width:2px;height:2px; left:78%; animation-duration:27s; animation-delay:2s;   bottom:-5px; }
+.aurora-particles span:nth-child(18) { width:1px;height:1px; left:92%; animation-duration:22s; animation-delay:15s;  bottom:-5px; background:rgba(180,140,255,0.5); }
+.aurora-particles span:nth-child(19) { width:2px;height:2px; left:12%; animation-duration:19s; animation-delay:10s;  bottom:-5px; }
+.aurora-particles span:nth-child(20) { width:1px;height:1px; left:44%; animation-duration:23s; animation-delay:7s;   bottom:-5px; background:rgba(212,162,76,0.4); }
+.aurora-particles span:nth-child(21) { width:2px;height:2px; left:60%; animation-duration:17s; animation-delay:12s;  bottom:-5px; }
+.aurora-particles span:nth-child(22) { width:1px;height:1px; left:76%; animation-duration:25s; animation-delay:3s;   bottom:-5px; background:rgba(180,140,255,0.3); }
+.aurora-particles span:nth-child(23) { width:2px;height:2px; left:28%; animation-duration:21s; animation-delay:14s;  bottom:-5px; }
+.aurora-particles span:nth-child(24) { width:1px;height:1px; left:85%; animation-duration:28s; animation-delay:5s;   bottom:-5px; background:rgba(212,162,76,0.5); }
+.aurora-particles span:nth-child(25) { width:2px;height:2px; left:96%; animation-duration:20s; animation-delay:16s;  bottom:-5px; }
+
 @keyframes aurora1 {
   0%,100% { transform: translate(0,0) scale(1); }
-  25%     { transform: translate(60px,-50px) scale(1.08); }
-  50%     { transform: translate(30px,40px) scale(0.95); }
-  75%     { transform: translate(-40px,-20px) scale(1.04); }
+  25%     { transform: translate(70px,-55px) scale(1.1); }
+  50%     { transform: translate(35px,45px) scale(0.93); }
+  75%     { transform: translate(-45px,-25px) scale(1.05); }
 }
 @keyframes aurora2 {
   0%,100% { transform: translate(0,0) scale(1); }
-  30%     { transform: translate(-50px,40px) scale(1.06); }
-  60%     { transform: translate(30px,-30px) scale(0.97); }
-  80%     { transform: translate(-20px,15px) scale(1.02); }
+  30%     { transform: translate(-60px,45px) scale(1.08); }
+  60%     { transform: translate(35px,-35px) scale(0.95); }
+  80%     { transform: translate(-25px,18px) scale(1.03); }
+}
+@keyframes aurora3 {
+  0%,100% { transform: translate(0,0) scale(1); }
+  40%     { transform: translate(-40px,-60px) scale(1.07); }
+  70%     { transform: translate(30px,30px) scale(0.96); }
+}
+@keyframes particleRise {
+  0%   { transform: translateY(0) translateX(0); opacity:0; }
+  10%  { opacity:1; }
+  50%  { transform: translateY(-50vh) translateX(15px); }
+  90%  { opacity:0.4; }
+  100% { transform: translateY(-105vh) translateX(-10px); opacity:0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .lang-select-page::before,
-  .lang-select-page::after { animation: none; }
+  .lang-select-page::after,
+  .aurora-orb-3,
+  .aurora-particles span { animation: none; }
+}
+
+@media (max-width: 768px) {
+  .aurora-particles span:nth-child(n+16) { display: none; }
 }
 
 /* ── Glassmorphism Card ── */

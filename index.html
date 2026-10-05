@@ -12,11 +12,15 @@
 <!-- A) LANGUAGE SELECTION -->
 <div id="page-lang" class="lang-select-page">
 
-  <!-- Aurora Canvas -->
-  <canvas id="aurora-canvas" style="
-    position:absolute;top:0;left:0;
-    pointer-events:none;z-index:0;
-  "></canvas>
+  <!-- Aurora Layers -->
+  <div class="aurora-orb aurora-orb-3"></div>
+  <div class="aurora-particles" aria-hidden="true">
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+  </div>
 
   <div class="lang-select-card">
     <div class="brand-logo">
@@ -224,105 +228,6 @@
 </div>
 
 <div class="toast" id="toast"></div>
-
-<script>
-/* ── AURORA BACKGROUND ── */
-(function(){
-  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const canvas  = document.getElementById('aurora-canvas');
-  if(!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const isMobile = window.innerWidth < 768;
-  const dpr = devicePixelRatio || 1;
-
-  /* Resize — match parent page-lang div */
-  function resize(){
-    const parent = canvas.parentElement;
-    const w = parent.offsetWidth;
-    const h = parent.offsetHeight || window.innerHeight;
-    canvas.style.width  = w + 'px';
-    canvas.style.height = h + 'px';
-    canvas.width  = w * dpr;
-    canvas.height = h * dpr;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  }
-  resize();
-  window.addEventListener('resize', resize);
-
-  /* ── Wavy lines ── */
-  const LINES = 6;
-  const lines = Array.from({length:LINES}, (_,i)=>({
-    y: (i+1) / (LINES+1),
-    phase: Math.random() * Math.PI * 2,
-    speed: 0.0003 + Math.random() * 0.0002,
-    amp:   30 + Math.random() * 25,
-    freq:  0.003 + Math.random() * 0.002,
-    alpha: 0.06 + Math.random() * 0.08,
-    color: Math.random() > 0.5 ? '212,162,76' : '107,63,160',
-  }));
-
-  /* ── Particles ── */
-  const PCOUNT = isMobile ? 20 : 35;
-  const W = ()=> canvas.width / dpr;
-  const H = ()=> canvas.height / dpr;
-
-  function mkParticle(){
-    return {
-      x:     Math.random() * W(),
-      y:     H() + Math.random() * 60,
-      r:     0.5 + Math.random() * 1.2,
-      vy:    0.15 + Math.random() * 0.3,
-      vx:    (Math.random() - 0.5) * 0.3,
-      alpha: 0.2 + Math.random() * 0.5,
-      twinkleSpeed: 0.01 + Math.random() * 0.02,
-      twinklePhase: Math.random() * Math.PI * 2,
-      color: Math.random() > 0.3 ? '212,162,76' : '180,140,255',
-    };
-  }
-  const particles = Array.from({length: PCOUNT}, mkParticle);
-
-  /* ── Render ── */
-  let t = 0;
-  function draw(){
-    const w = W(), h = H();
-    ctx.clearRect(0, 0, w, h);
-
-    if(!reduced){
-      /* Wavy lines */
-      lines.forEach(l=>{
-        ctx.beginPath();
-        const y0 = l.y * h;
-        ctx.moveTo(0, y0 + Math.sin(l.phase) * l.amp);
-        for(let x=0; x<=w; x+=4){
-          const y = y0 + Math.sin(x * l.freq + l.phase) * l.amp;
-          ctx.lineTo(x, y);
-        }
-        ctx.strokeStyle = `rgba(${l.color},${l.alpha})`;
-        ctx.lineWidth   = 1;
-        ctx.stroke();
-        l.phase += l.speed;
-      });
-
-      /* Particles */
-      particles.forEach((p,i)=>{
-        p.twinklePhase += p.twinkleSpeed;
-        const a = p.alpha * (0.6 + 0.4 * Math.sin(p.twinklePhase));
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
-        ctx.fillStyle = `rgba(${p.color},${a})`;
-        ctx.fill();
-        p.x += p.vx;
-        p.y -= p.vy;
-        if(p.y < -10) Object.assign(p, mkParticle(), {y: H()+10});
-      });
-    }
-
-    t++;
-    requestAnimationFrame(draw);
-  }
-  draw();
-})();
-</script>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
