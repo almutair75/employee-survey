@@ -359,9 +359,10 @@ p { color: var(--text-secondary); }
   flex-shrink: 0;
 }
 
-.icon-blue   { background: var(--primary-light); color: var(--primary); }
-.icon-cyan   { background: #ede9f5; color: var(--accent); }
-.icon-purple { background: #f5eaf0; color: var(--primary); }
+.icon-blue        { background: var(--primary-light); color: var(--primary); }
+.icon-cyan        { background: #ede9f5; color: var(--accent); }
+.icon-purple      { background: #f5eaf0; color: var(--primary); }
+.icon-brand-solid { background: #803658; color: white; }
 .icon-green { background: #f0fdf4; color: var(--success); }
 .icon-amber { background: #fffbeb; color: var(--warning); }
 
