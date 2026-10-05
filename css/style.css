@@ -6,10 +6,10 @@
 
 /* ---- CSS Variables ---- */
 :root {
-  --primary: #1a56db;
-  --primary-dark: #1342a8;
-  --primary-light: #e8effe;
-  --accent: #0891b2;
+  --primary: #803658;
+  --primary-dark: #6b2d49;
+  --primary-light: #f5eaf0;
+  --accent: #3e3755;
   --success: #059669;
   --warning: #d97706;
   --danger: #dc2626;
@@ -84,7 +84,7 @@ p { color: var(--text-secondary); }
   text-align: center;
   max-width: 520px;
   width: 100%;
-  border: 1px solid rgba(26, 86, 219, 0.08);
+  border: 1px solid rgba(128, 54, 88, 0.08);
 }
 
 .brand-logo {
@@ -166,13 +166,13 @@ p { color: var(--text-secondary); }
    SURVEY PAGE HEADER
    ============================================= */
 .survey-header {
-  background: #3e3755;
+  background: #803658;
   border-bottom: none;
   padding: 0.75rem 1.5rem;
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: 0 2px 10px rgba(62,55,85,0.3);
+  box-shadow: 0 2px 10px rgba(128,54,88,0.3);
 }
 
 .survey-brand-logo {
@@ -341,8 +341,8 @@ p { color: var(--text-secondary); }
 
 .card-header {
   padding: 1rem 1.5rem;
-  border-bottom: 1px solid #e4dff0;
-  background: #f0ecf8;
+  border-bottom: 1px solid #edd9e3;
+  background: #f8f0f4;
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -359,9 +359,9 @@ p { color: var(--text-secondary); }
   flex-shrink: 0;
 }
 
-.icon-blue { background: var(--primary-light); color: var(--primary); }
-.icon-cyan { background: #ecfeff; color: var(--accent); }
-.icon-purple { background: #f5f3ff; color: #7c3aed; }
+.icon-blue   { background: var(--primary-light); color: var(--primary); }
+.icon-cyan   { background: #ede9f5; color: var(--accent); }
+.icon-purple { background: #f5eaf0; color: var(--primary); }
 .icon-green { background: #f0fdf4; color: var(--success); }
 .icon-amber { background: #fffbeb; color: var(--warning); }
 
@@ -414,7 +414,7 @@ label {
 
 .form-input:focus, .form-select:focus, .form-textarea:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.1);
+  box-shadow: 0 0 0 3px rgba(128, 54, 88, 0.1);
 }
 
 .form-input.invalid, .form-select.invalid, .form-textarea.invalid {
@@ -590,7 +590,7 @@ label {
   border-color: var(--primary);
   background: var(--primary);
   color: white;
-  box-shadow: 0 2px 8px rgba(26, 86, 219, 0.25);
+  box-shadow: 0 2px 8px rgba(128, 54, 88, 0.25);
 }
 
 .star-btn[data-val="1"].active { background: #ef4444; border-color: #ef4444; }
@@ -628,12 +628,12 @@ label {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  box-shadow: 0 4px 14px rgba(26, 86, 219, 0.35);
+  box-shadow: 0 4px 14px rgba(128, 54, 88, 0.35);
 }
 
 .btn-submit:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(26, 86, 219, 0.4);
+  box-shadow: 0 6px 20px rgba(128, 54, 88, 0.4);
 }
 
 .btn-submit:active { transform: translateY(0); }
