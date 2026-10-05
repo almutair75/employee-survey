@@ -5,8 +5,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>مقارنة الفترات — استبيان Odoo</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 :root{--pr:#1a56db;--ac:#0891b2;--ok:#059669;--wa:#d97706;--er:#dc2626;
@@ -398,7 +396,7 @@ function calcStats(data){
   const tot=av(opA.filter(v=>v!=null));
   const pc={1:0,2:0,3:0,4:0,5:0};
   data.forEach(r=>{const v=r.ratings?.q6;if(v)pc[v]++;});
-  const fuA=['q8','q9','q10','q11'].map(k=>{const v=data.map(r=>r.ratings?.[k]).filter(v=>v!=null);return v.length?av(v):null;});
+  const fuA=['q8','q9','q10','q11','q12','q13','q14'].map(k=>{const v=data.map(r=>r.ratings?.[k]).filter(v=>v!=null);return v.length?av(v):null;});
   const depts={};
   data.forEach(r=>{
     const d=r.department||'—';
@@ -685,5 +683,7 @@ async function copyAsImage(){
   },'image/png');
 }
 </script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </body>
 </html>

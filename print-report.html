@@ -4,8 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>التقرير الشامل — استبيان Odoo</title>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
@@ -537,7 +535,7 @@ addEventListener('DOMContentLoaded', () => {
     const ds = document.getElementById('f-dept');
     [...new Set(all.map(r=>r.department).filter(Boolean))].sort().forEach(d => {
       const o = document.createElement('option');
-      o.value = d; o.textContent = d; ds.appendChild(o);
+      o.value = d; o.textContent = displayDept(d); ds.appendChild(o);
     });
 
     if (p.get('dept'))     { ds.value = p.get('dept'); }
@@ -625,7 +623,7 @@ function renderSelector() {
               ${selected.has(r.id)?'checked':''}
               onchange="toggleEmp('${r.id}',this.checked)" />
             ${esc(r.name)}
-            <span class="emp-check-dept">${esc(r.department)}</span>
+            <span class="emp-check-dept">${esc(displayDept(r.department))}</span>
           </label>`).join('')}
       </div>
     </div>`;
@@ -719,7 +717,7 @@ function buildTOC(data) {
     return `<div class="toc-row">
       <span class="toc-idx">${i+1}</span>
       <span class="toc-name">${esc(r.name)}</span>
-      <span class="toc-dept">${esc(r.department)}</span>
+      <span class="toc-dept">${esc(displayDept(r.department))}</span>
       <span class="toc-score" style="color:${color};background:${bg};">${avg.toFixed(1)}/5</span>
     </div>`;
   }).join('');
@@ -772,7 +770,7 @@ function buildEmpCard(r, idx, total) {
       <div class="emp-initials">${initials}</div>
       <div class="emp-info">
         <h3>${esc(r.name)}</h3>
-        <p>${esc(r.department)} · ${usageTxt} · ${date}</p>
+        <p>${esc(displayDept(r.department))} · ${usageTxt} · ${date}</p>
       </div>
       <div class="emp-avg">
         <div class="emp-avg-num">${avg.toFixed(1)}</div>
@@ -782,7 +780,7 @@ function buildEmpCard(r, idx, total) {
     <div class="emp-card-body">
       <div class="emp-meta">
         <div class="meta-item"><div class="meta-lbl">${lblName}</div><div class="meta-val">${esc(r.name)}</div></div>
-        <div class="meta-item"><div class="meta-lbl">${lblDept}</div><div class="meta-val">${esc(r.department)}</div></div>
+        <div class="meta-item"><div class="meta-lbl">${lblDept}</div><div class="meta-val">${esc(displayDept(r.department))}</div></div>
         <div class="meta-item"><div class="meta-lbl">${lblDate}</div><div class="meta-val">${date}</div></div>
       </div>
       <div class="ratings-title">${L.ui.opRating}</div>
@@ -839,5 +837,7 @@ function esc(s) {
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 </script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </body>
 </html>
