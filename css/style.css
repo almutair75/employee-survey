@@ -145,8 +145,20 @@ p { color: var(--text-secondary); }
   box-shadow: var(--shadow-md);
 }
 
-.lang-btn .flag {
-  font-size: 2rem;
+.lang-btn .flag { font-size: 2rem; }
+
+/* SA / EN badge */
+.lang-code-badge {
+  font-size: 1.3rem;
+  font-weight: 800;
+  font-family: 'Inter', sans-serif;
+  color: #803658;
+  letter-spacing: .05em;
+  line-height: 1;
+  min-height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .lang-btn .lang-name-primary {
@@ -154,25 +166,28 @@ p { color: var(--text-secondary); }
   font-weight: 700;
 }
 
+/* Secondary label — English btn shows Arabic, Arabic btn shows English */
 .lang-btn .lang-name-secondary {
   font-size: 0.8rem;
   color: var(--text-muted);
 }
 
-.lang-btn.lang-ar-btn .lang-name-primary { font-family: var(--font-ar); }
-.lang-btn.lang-en-btn .lang-name-primary { font-family: var(--font-en); }
+.lang-btn.lang-ar-btn .lang-name-primary  { font-family: var(--font-ar); }
+.lang-btn.lang-ar-btn .lang-name-secondary { font-family: var(--font-en); }
+.lang-btn.lang-en-btn .lang-name-primary  { font-family: var(--font-en); }
+.lang-btn.lang-en-btn .lang-name-secondary { font-family: var(--font-ar); }
 
 /* =============================================
    SURVEY PAGE HEADER
    ============================================= */
 .survey-header {
-  background: #803658;
+  background: #3e3755;
   border-bottom: none;
   padding: 0.75rem 1.5rem;
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: 0 2px 10px rgba(128,54,88,0.3);
+  box-shadow: 0 2px 10px rgba(62,55,85,0.3);
 }
 
 .survey-brand-logo {
@@ -616,7 +631,7 @@ label {
 .btn-submit {
   width: 100%;
   padding: 0.9rem 2rem;
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  background: linear-gradient(135deg, #3e3755, #2d2740);
   color: white;
   border: none;
   border-radius: var(--radius);
@@ -629,12 +644,12 @@ label {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  box-shadow: 0 4px 14px rgba(128, 54, 88, 0.35);
+  box-shadow: 0 4px 14px rgba(62,55,85,0.35);
 }
 
 .btn-submit:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(128, 54, 88, 0.4);
+  box-shadow: 0 6px 20px rgba(62,55,85,0.4);
 }
 
 .btn-submit:active { transform: translateY(0); }
