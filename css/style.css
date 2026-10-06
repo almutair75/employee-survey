@@ -79,41 +79,36 @@ p { color: var(--text-secondary); }
   overflow: hidden;
 }
 
-/* ── Aurora Orb 1 — purple ── */
-.lang-select-page::before {
-  content: '';
+/* ── Aurora Orbs — div-based for cross-browser filter:blur support ── */
+.aurora-orb {
   position: absolute;
-  width: 700px; height: 700px;
   border-radius: 50%;
+  pointer-events: none;
+  will-change: transform;
+  z-index: 0;
+}
+.aurora-orb-1 {
+  width: 700px; height: 700px;
   background: radial-gradient(circle,
-    rgba(107,63,160,0.35) 0%,
-    rgba(107,63,160,0.12) 40%,
+    rgba(107,63,160,0.45) 0%,
+    rgba(107,63,160,0.15) 45%,
     transparent 70%);
   filter: blur(80px);
   top: -200px; left: -180px;
   animation: aurora1 26s ease-in-out infinite;
-  pointer-events: none;
-  will-change: transform;
 }
-
-/* ── Aurora Orb 2 — gold ── */
-.lang-select-page::after {
-  content: '';
-  position: absolute;
-  width: 620px; height: 620px;
-  border-radius: 50%;
+.aurora-orb-2 {
+  width: 650px; height: 650px;
   background: radial-gradient(circle,
-    rgba(212,162,76,0.28) 0%,
-    rgba(212,162,76,0.08) 40%,
+    rgba(212,162,76,0.38) 0%,
+    rgba(212,162,76,0.1) 45%,
     transparent 70%);
   filter: blur(90px);
   bottom: -160px; right: -140px;
   animation: aurora2 22s ease-in-out infinite;
-  pointer-events: none;
-  will-change: transform;
 }
 
-/* ── Aurora Orb 3 — rose (CSS class) ── */
+/* ── Aurora Orb 3 — rose ── */
 .aurora-orb-3 {
   position: absolute;
   width: 500px; height: 500px;
@@ -1662,6 +1657,10 @@ body.dash-rtl .modal-body { direction: rtl; text-align: right; }
 
   /* Charts grid becomes single column for print */
   .charts-grid { grid-template-columns: 1fr !important; }
+
+  /* Show ALL tab panels when printing — not just the active one */
+  .tab-panel { display: block !important; }
+  .tab-panel + .tab-panel { margin-top: 1.5rem; border-top: 1px dashed #ccc; padding-top: 1rem; }
 
   /* Print note page */
   .print-actions { display: none !important; }
