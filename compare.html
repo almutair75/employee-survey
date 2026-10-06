@@ -500,15 +500,23 @@ function render(d1,d2,n1,n2,p1f,p1t,p2f,p2t){
   }).join('');
 
   /* ── Employee Matching ── */
+  // Key = اسم أول + قسم (يحل مشكلة الاسم الثنائي vs الثلاثي)
+  const firstName=n=>(n||'').trim().split(/\s+/)[0].toLowerCase();
+  const empKey=(r)=>firstName(r.name)+'|'+normD(r.department);
+
   const empMap={};
   d1.forEach(r=>{
-    const key=r.name?.trim().toLowerCase();
+    const key=empKey(r);
     if(key) empMap[key]={r1:r,r2:null,name:r.name,dept:r.department};
   });
   d2.forEach(r=>{
-    const key=r.name?.trim().toLowerCase();
+    const key=empKey(r);
     if(key){
-      if(empMap[key]) empMap[key].r2=r;
+      if(empMap[key]){
+        empMap[key].r2=r;
+        // احتفظ بالاسم الأطول (الأكثر تفصيلاً)
+        if((r.name||'').length>(empMap[key].name||'').length) empMap[key].name=r.name;
+      }
       else empMap[key]={r1:null,r2:r,name:r.name,dept:r.department};
     }
   });
