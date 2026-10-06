@@ -516,18 +516,25 @@ function render(d1,d2,n1,n2,p1f,p1t,p2f,p2t){
   const only1=Object.values(empMap).filter(e=>e.r1&&!e.r2);
   const only2=Object.values(empMap).filter(e=>!e.r1&&e.r2);
 
-  const empRows=matched.sort((a,b)=>{
-    const av1=a.r1.avgRating||0, av2=a.r2.avgRating||0;
-    return (av2-av1)-(av1-av2);
-  }).map(e=>{
-    const v1=e.r1.avgRating||0, v2=e.r2.avgRating||0;
-    const dv=delta(v1,v2);
-    return`<tr>
+  // ALL employees: matched + only in period 1 + only in period 2
+  const allEmps = [
+    ...matched.sort((a,b)=>(b.r2.avgRating-b.r1.avgRating)-(a.r2.avgRating-a.r1.avgRating)),
+    ...only1.sort((a,b)=>(b.r1.avgRating||0)-(a.r1.avgRating||0)),
+    ...only2.sort((a,b)=>(b.r2.avgRating||0)-(a.r2.avgRating||0)),
+  ];
+  const dash=`<span style="color:#aaa;font-size:.8rem;">—</span>`;
+  const empRows=allEmps.map(e=>{
+    const hasR1=!!e.r1, hasR2=!!e.r2;
+    const v1=hasR1?(e.r1.avgRating||0):null;
+    const v2=hasR2?(e.r2.avgRating||0):null;
+    const dv=(hasR1&&hasR2)?delta(v1,v2):null;
+    const rowStyle=(!hasR1||!hasR2)?'background:#fafafa;opacity:.75;':'';
+    return`<tr style="${rowStyle}">
       <td style="font-weight:700">${e.name}</td>
-      <td>${e.dept}</td>
-      <td><span style="font-weight:800;color:${sc(v1)}">${v1.toFixed(1)}</span></td>
-      <td><span style="font-weight:800;color:${sc(v2)}">${v2.toFixed(1)}</span></td>
-      <td>${deltaPill(dv)}</td>
+      <td>${normD(e.dept)}</td>
+      <td>${hasR1?`<span style="font-weight:800;color:${sc(v1)}">${v1.toFixed(1)}</span>`:dash}</td>
+      <td>${hasR2?`<span style="font-weight:800;color:${sc(v2)}">${v2.toFixed(1)}</span>`:dash}</td>
+      <td>${dv!==null?deltaPill(dv):dash}</td>
     </tr>`;
   }).join('');
 
