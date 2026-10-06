@@ -492,6 +492,35 @@ const USAGE_COLORS = {
   daily:'#1a56db', weekly:'#0891b2', rarely:'#10b981', little:'#9ca3af'
 };
 
+/* ══ DEPT NORMALIZATION ══ */
+const DEPT_MAP={
+  'sales':'المبيعات','Sales':'المبيعات',
+  'purchasing':'المشتريات','Purchasing':'المشتريات',
+  'production':'الإنتاج','Production':'الإنتاج',
+  'Warehouse & Inventory':'المستودعات والمخازن',
+  'warehouse & inventory':'المستودعات والمخازن',
+  'Warehouse':'المستودعات والمخازن','warehouse':'المستودعات والمخازن',
+  'Accounting & Finance':'المحاسبة والمالية',
+  'accounting':'المحاسبة والمالية','Accounting':'المحاسبة والمالية',
+  'Human Resources':'الموارد البشرية','HR':'الموارد البشرية','hr':'الموارد البشرية',
+  'Information Technology':'تقنية المعلومات','IT':'تقنية المعلومات','it':'تقنية المعلومات',
+  'Customer Service':'خدمة العملاء','customer service':'خدمة العملاء',
+  'Senior Management':'الإدارة العليا','Management':'الإدارة العليا',
+  'Other':'أخرى','other':'أخرى',
+};
+const DEPT_EN={
+  'المبيعات':'Sales','المشتريات':'Purchasing','الإنتاج':'Production',
+  'المستودعات والمخازن':'Warehouse & Inventory',
+  'المحاسبة والمالية':'Accounting & Finance',
+  'الموارد البشرية':'Human Resources',
+  'تقنية المعلومات':'Information Technology',
+  'خدمة العملاء':'Customer Service',
+  'الإدارة العليا':'Senior Management',
+  'أخرى':'Other',
+};
+const normDept=d=>DEPT_MAP[d]||DEPT_MAP[d?.trim()]||d||'—';
+const displayDept=d=>lang==='en'?(DEPT_EN[normDept(d)]||normDept(d)):normDept(d);
+
 /* ══ STATE ══ */
 let all = [], filtered = [], selected = new Set();
 let lang = 'ar';  // set from URL param
