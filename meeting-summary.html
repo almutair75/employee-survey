@@ -59,9 +59,11 @@ body.ltr{font-family:'Inter',sans-serif;direction:ltr;}
 
 .main-grid{display:grid;grid-template-columns:1fr 1.8fr;gap:.625rem;margin-bottom:.5rem;}
 .panel{border:1px solid var(--bd);border-radius:7px;padding:.45rem .6rem;background:#fafafa;}
-.panel-t{font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;
+.panel-t{font-size:.6rem;font-weight:800;
   color:var(--mu);margin-bottom:.35rem;padding-bottom:.25rem;border-bottom:1px solid var(--bd);
   display:flex;align-items:center;gap:.25rem;}
+/* uppercase + letter-spacing يكسر الحروف العربية — نطبقها فقط على LTR */
+body.ltr .panel-t{text-transform:uppercase;letter-spacing:.04em;}
 .pdot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
 
 .sr{display:flex;align-items:center;gap:.3rem;margin-bottom:.2rem;}
