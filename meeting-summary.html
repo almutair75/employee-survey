@@ -4,7 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>ملخص الاجتماع — Odoo</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image-more/3.4.0/dom-to-image-more.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 :root{--pr:#1a56db;--ac:#0891b2;--ok:#059669;--wa:#d97706;--er:#dc2626;--pu:#7c3aed;
@@ -429,8 +429,23 @@ async function copyAsImage(){
   const t=T[lang];
   btn.textContent='⏳';btn.disabled=true;
   try{
-    const canvas=await html2canvas(document.getElementById('sheet'),
-      {scale:2.5,useCORS:true,backgroundColor:'#ffffff',logging:false});
+    await document.fonts.ready;
+    const node=document.getElementById('sheet');
+    const canvas=await html2canvas(node,{
+      scale:2.5,
+      useCORS:true,
+      allowTaint:true,
+      backgroundColor:'#ffffff',
+      logging:false,
+      letterRendering:true,
+      onclone:(doc)=>{
+        // ضمان اتجاه RTL في النسخة المستنسخة
+        doc.documentElement.setAttribute('dir','rtl');
+        doc.body.style.direction='rtl';
+        const sheet=doc.getElementById('sheet');
+        if(sheet) sheet.style.direction='rtl';
+      }
+    });
     canvas.toBlob(async blob=>{
       try{
         await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);
